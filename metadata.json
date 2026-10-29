@@ -1,0 +1,8 @@
+{
+  "name": "Gubersmart OK",
+  "description": "Website penjualan kelas online Guber Smart - Belajar membuat aplikasi hanya bermodalkan ide tanpa perlu koding.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

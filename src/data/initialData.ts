@@ -293,8 +293,6 @@ export const INITIAL_CMS_SETTINGS: CMSSettings = {
     { id: 'nav-kelas', label: 'Kelas', target: '#kelas', isVisible: true, order: 3 },
     { id: 'nav-keunggulan', label: 'Keunggulan', target: '#keunggulan', isVisible: true, order: 4 },
     { id: 'nav-karya', label: 'Karya', target: '#karya', isVisible: true, order: 5 },
-    { id: 'nav-tips', label: 'Tips', target: '#tips', isVisible: true, order: 6 },
-    { id: 'nav-kontak', label: 'Kontak', target: '#kontak', isVisible: true, order: 7 },
   ],
   buttons: {
     heroPrimaryText: 'Daftar Sekarang',
@@ -317,20 +315,18 @@ export const INITIAL_CMS_SETTINGS: CMSSettings = {
     { id: 'keunggulan', label: 'Keunggulan', title: 'Belajar Lebih Mudah dengan Dukungan Lengkap', subtitle: 'Seluruh sarana dan pendampingan disiapkan agar Anda fokus melahirkan karya tanpa hambatan teknis.', isVisible: true, order: 7, image: '' },
     { id: 'karya', label: 'Karya Peserta', title: 'Aplikasi yang Lahir dari Ide Peserta', subtitle: 'Bukti nyata bahwa ide sederhana bisa diwujudkan menjadi solusi digital bermanfaat.', isVisible: true, order: 8 },
     { id: 'testimoni', label: 'Testimoni', title: 'Kata Mereka yang Sudah Belajar', subtitle: 'Pengalaman langsung dari peserta beragam latar belakang yang telah merasakan kemudahan belajar.', isVisible: true, order: 9 },
-    { id: 'tips', label: 'Tips dan Informasi', title: 'Update Terbaru', subtitle: 'Wawasan, panduan penulisan prompt, dan inspirasi berkarya digital untuk Anda.', isVisible: true, order: 10, image: '' },
-    { id: 'faq', label: 'Pertanyaan', title: 'Yang Sering Ditanyakan', subtitle: 'Jawaban atas hal-hal yang sering ditanyakan seputar proses belajar dan pendaftaran kelas.', isVisible: true, order: 11 },
-    { id: 'ajakan', label: 'Pendaftaran Dibuka', title: 'Bergabunglah Bersama Guber Smart', subtitle: 'Wujudkan ide aplikasi pertama Anda sekarang juga bersama panduan langkah demi langkah.', isVisible: true, order: 12, image: '' },
-    { id: 'kontak', label: 'Kontak', title: 'Hubungi Kami', subtitle: 'Ada pertanyaan sebelum mendaftar? Tim kami siap berdiskusi bersama Anda.', isVisible: true, order: 13 },
+    { id: 'faq', label: 'Pertanyaan', title: 'Yang Sering Ditanyakan', subtitle: 'Jawaban atas hal-hal yang sering ditanyakan seputar proses belajar dan pendaftaran kelas.', isVisible: true, order: 10 },
+    { id: 'ajakan', label: 'Pendaftaran Dibuka', title: 'Bergabunglah Bersama Guber Smart', subtitle: 'Wujudkan ide aplikasi pertama Anda sekarang juga bersama panduan langkah demi langkah.', isVisible: true, order: 11, image: '' },
   ],
   pages: [],
   features: {
     testimonials: true,
     faq: true,
     karya: true,
-    tips: true,
+    tips: false,
     waFloating: true,
     tanyaDulu: true,
-    searchTips: true,
+    searchTips: false,
   },
   media: {
     introVideoUrl: '',
@@ -346,7 +342,7 @@ export const INITIAL_CMS_SETTINGS: CMSSettings = {
       youtube: '',
     },
     motto: 'Ide • Aplikasi • Karya',
-    copyright: '© 2026 Guber Smart. All rights reserved.',
+    copyright: 'Copyright @ 2027 GuberSmart',
   },
 };
 

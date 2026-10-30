@@ -81,17 +81,8 @@ export const HomePage: React.FC<HomePageProps> = ({
         {cms.features.testimonials && (
           <TestimoniSection testimonials={testimonials} />
         )}
-        {cms.features.tips && (
-          <TipsSection
-            tips={tips}
-            cms={cms}
-            onSelectTip={onSelectTip}
-            onViewAll={onViewAllTips}
-          />
-        )}
         {cms.features.faq && <FAQSection faqs={faqs} />}
         <AjakanSection cms={cms} />
-        <KontakSection cms={cms} />
       </main>
 
       <Footer

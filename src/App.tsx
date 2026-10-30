@@ -150,7 +150,7 @@ export default function App() {
   useEffect(() => {
     if (route.page !== 'home') return;
 
-    const sections = ['hero', 'profil', 'kelas', 'keunggulan', 'karya', 'tips', 'kontak'];
+    const sections = ['hero', 'profil', 'kelas', 'keunggulan', 'karya'];
     const handleScroll = () => {
       const scrollPos = window.scrollY + 120;
       for (const id of sections) {

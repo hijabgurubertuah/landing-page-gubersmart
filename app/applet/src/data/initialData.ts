@@ -359,8 +359,6 @@ export const initialCmsSettings: CmsSettings = {
     { label: 'Kelas', url: '#kelas', show: true },
     { label: 'Keunggulan', url: '#keunggulan', show: true },
     { label: 'Karya', url: '#karya', show: true },
-    { label: 'Tips', url: '#tips', show: true },
-    { label: 'Kontak', url: '#kontak', show: true },
     { label: 'Masuk', url: '#masuk', show: true }
   ],
   buttons: [
@@ -400,7 +398,7 @@ export const initialCmsSettings: CmsSettings = {
       facebook: ''
     },
     slogan: 'Ide • Aplikasi • Karya',
-    copyright: '© 2026 Guber Smart. All rights reserved.'
+    copyright: 'Copyright @ 2027 GuberSmart'
   },
   sync: {
     scriptUrl: '',

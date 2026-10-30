@@ -47,7 +47,7 @@ export const KontakSection: React.FC<KontakSectionProps> = ({ cms }) => {
               WhatsApp
             </div>
             <div className="font-serif font-bold text-xl text-[#1b2433] mb-2">
-              {cms.footer.waNumber}
+              Konsultasi WhatsApp
             </div>
           </div>
           <div className="pt-6">
@@ -57,7 +57,7 @@ export const KontakSection: React.FC<KontakSectionProps> = ({ cms }) => {
               rel="noopener noreferrer"
               className="inline-block px-6 py-2.5 rounded-full border border-[#c9a35a] text-[#07142b] hover:bg-[#f8f5ef] text-sm font-semibold transition"
             >
-              Kirim Pesan
+              Hubungi Kami
             </a>
           </div>
         </div>

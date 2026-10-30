@@ -44,8 +44,6 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
     { label: 'Kelas', target: 'kelas' },
     { label: 'Keunggulan', target: 'keunggulan' },
     { label: 'Karya', target: 'karya' },
-    { label: 'Tips', target: 'tips' },
-    { label: 'Kontak', target: 'kontak' },
   ];
 
   const handleItemClick = (target: string) => {

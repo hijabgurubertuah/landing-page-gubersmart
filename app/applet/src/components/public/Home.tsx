@@ -453,60 +453,7 @@ export const Home: React.FC<HomeProps> = ({
         </section>
       )}
 
-      {/* 10. Tips dan Informasi */}
-      {cms.features.tips && (
-        <section id="tips" className="py-20 max-w-[1200px] mx-auto px-4 md:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-            <div className="space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">Tips dan Informasi</span>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#1b2433]">Update Terbaru</h2>
-            </div>
-            <button
-              onClick={onViewAllTips}
-              className="text-sm font-bold text-[#a77d36] hover:text-[#07142b] transition flex items-center gap-1 self-start md:self-auto"
-            >
-              <span>Lihat Semua Tips</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
 
-          {publishedTips.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-[18px] border border-[#e7e1d5]">
-              <p className="text-base font-serif text-[#4b5565]">Belum ada tips</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {publishedTips.map((tip) => {
-                const tipImg = getImageSrc(tip.thumbnail) || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80';
-                return (
-                  <div key={tip.id} className="bg-white rounded-[18px] overflow-hidden shadow-md border border-[#e7e1d5] flex flex-col transition hover:shadow-xl hover:-translate-y-1">
-                    <div className="relative aspect-[1.9/1] overflow-hidden bg-[#f1ece2]">
-                      <img src={tipImg} alt={tip.title} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs text-[#a77d36] font-semibold">
-                          <span>{tip.category}</span>
-                          <span className="text-[#6b7280]">{tip.date}</span>
-                        </div>
-                        <h3 className="font-serif font-bold text-lg text-[#1b2433] leading-snug">{tip.title}</h3>
-                        <p className="text-sm text-[#4b5565] line-clamp-2">{tip.summary}</p>
-                      </div>
-                      <button
-                        onClick={() => onSelectTip(tip)}
-                        className="text-sm font-bold text-[#a77d36] hover:text-[#07142b] transition flex items-center gap-1"
-                      >
-                        <span>Selengkapnya</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      )}
 
       {/* 11. FAQ */}
       {cms.features.faq && (
@@ -578,36 +525,7 @@ export const Home: React.FC<HomeProps> = ({
         </div>
       </section>
 
-      {/* 13. Kontak */}
-      <section id="kontak" className="py-20 bg-[#f1ece2]">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">Kontak</span>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#1b2433]">Hubungi Kami</h2>
-            <p className="text-sm text-[#4b5565]">Kami siap membantu menjawab pertanyaan Anda.</p>
-          </div>
 
-          <div className="max-w-xl mx-auto bg-white rounded-[18px] p-8 shadow-xl border border-[#e7e1d5] space-y-6 text-center">
-            <div className="p-4 rounded-[12px] bg-[#f8f5ef] border border-[#e7e1d5] space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7280]">WhatsApp</p>
-              <a
-                href={`https://wa.me/62${cms.contact.whatsapp.replace(/[^0-9]/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-lg font-bold text-[#16a34a] hover:underline inline-flex items-center gap-2"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>{cms.contact.whatsapp}</span>
-              </a>
-            </div>
-
-            <div className="p-4 rounded-[12px] bg-[#f8f5ef] border border-[#e7e1d5] space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#6b7280]">Jam Layanan</p>
-              <p className="text-sm font-semibold text-[#1b2433]">{cms.contact.serviceHours}</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Floating WhatsApp Button */}
       {cms.features.floatingWa && showWaFloat && (

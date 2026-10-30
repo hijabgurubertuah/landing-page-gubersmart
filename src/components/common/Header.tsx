@@ -39,8 +39,6 @@ export const Header: React.FC<HeaderProps> = ({
     { label: 'Kelas', target: 'kelas' },
     { label: 'Keunggulan', target: 'keunggulan' },
     { label: 'Karya', target: 'karya' },
-    { label: 'Tips', target: 'tips' },
-    { label: 'Kontak', target: 'kontak' },
   ];
 
   return (

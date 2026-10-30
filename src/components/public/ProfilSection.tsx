@@ -41,10 +41,10 @@ export const ProfilSection: React.FC<ProfilSectionProps> = ({ cms, onNavigate })
           <div className="pt-2">
             <button
               type="button"
-              onClick={() => onNavigate('visi-misi')}
+              onClick={() => onNavigate('kelas')}
               className="px-7 py-3 rounded-full gold-gradient-bg text-[#07142b] font-semibold hover:brightness-105 active:scale-95 transition shadow-sm"
             >
-              Selengkapnya
+              Lihat Kelas
             </button>
           </div>
         </div>

@@ -13,16 +13,12 @@ import {
 import { HeroSection } from '../components/public/HeroSection';
 import { PitaKeunggulan } from '../components/public/PitaKeunggulan';
 import { ProfilSection } from '../components/public/ProfilSection';
-import { VisiMisiSection } from '../components/public/VisiMisiSection';
 import { KelasSection } from '../components/public/KelasSection';
-import { AlurBelajarSection } from '../components/public/AlurBelajarSection';
 import { KeunggulanSection } from '../components/public/KeunggulanSection';
 import { KaryaSection } from '../components/public/KaryaSection';
 import { TestimoniSection } from '../components/public/TestimoniSection';
-import { TipsSection } from '../components/public/TipsSection';
 import { FAQSection } from '../components/public/FAQSection';
 import { AjakanSection } from '../components/public/AjakanSection';
-import { KontakSection } from '../components/public/KontakSection';
 import { Footer } from '../components/common/Footer';
 import { WhatsAppFloating } from '../components/common/WhatsAppFloating';
 
@@ -63,13 +59,11 @@ export const HomePage: React.FC<HomePageProps> = ({
         <HeroSection cms={cms} onNavigate={onNavigate} />
         <PitaKeunggulan />
         <ProfilSection cms={cms} onNavigate={onNavigate} />
-        <VisiMisiSection />
         <KelasSection
           classes={classes}
           cms={cms}
           onSelectClass={onSelectClass}
         />
-        <AlurBelajarSection />
         <KeunggulanSection cms={cms} onNavigate={onNavigate} />
         {cms.features.karya && (
           <KaryaSection

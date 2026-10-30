@@ -32,13 +32,13 @@ export const KeunggulanSection: React.FC<KeunggulanSectionProps> = ({
   return (
     <section
       id="keunggulan"
-      className="py-20 lg:py-28 bg-gradient-to-b from-[#07142b] via-[#0b1c38] to-[#07142b] text-white bg-islamic-pattern relative overflow-hidden"
+      className="py-20 lg:py-28 bg-[#f8f5ef]"
     >
       <div className="max-w-[1200px] 2xl:max-w-[1320px] mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          {/* Kolom Kiri: Foto slot 3 dengan garis tepi emas tipis */}
+          {/* Kolom Kiri: Foto slot 3 */}
           <div className="lg:col-span-5">
-            <div className="rounded-[18px] overflow-hidden border border-[#c9a35a]/40 shadow-2xl aspect-[1.15/1]">
+            <div className="rounded-[18px] overflow-hidden border border-[#e7e1d5] shadow-xl aspect-[1.15/1] bg-white">
               <ImageSlot
                 src={image}
                 alt="Keunggulan Guber Smart"
@@ -47,33 +47,33 @@ export const KeunggulanSection: React.FC<KeunggulanSectionProps> = ({
             </div>
           </div>
 
-          {/* Kolom Kanan: Teks & 5 Ubin Teks Tanpa Ikon */}
+          {/* Kolom Kanan: Teks & 5 Ubin Teks Jelas & Bersih */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#e8cd8f]">
+            <div className="text-xs uppercase tracking-[0.2em] font-semibold text-[#a77d36]">
               Keunggulan
             </div>
 
-            <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white leading-tight">
+            <h2 className="text-2xl sm:text-4xl font-serif font-bold text-[#1b2433] leading-tight">
               {title}
             </h2>
 
-            <p className="text-base text-gray-300 leading-relaxed">
+            <p className="text-base text-[#4b5565] leading-relaxed">
               {subtitle}
             </p>
 
-            {/* 5 ubin teks saja tanpa ikon saling berbatas garis tipis emas */}
+            {/* 5 ubin teks jelas dengan kartu putih tajam */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               {tiles.map((tile, idx) => (
                 <div
                   key={tile.title}
-                  className={`p-4 rounded-[14px] bg-[#12284a]/40 border border-[#c9a35a]/25 ${
+                  className={`p-5 rounded-[16px] bg-white border border-[#e7e1d5] shadow-sm hover:shadow-md transition ${
                     idx === 4 ? 'sm:col-span-2' : ''
                   }`}
                 >
-                  <div className="font-serif font-bold text-base text-[#e8cd8f] mb-1">
+                  <div className="font-serif font-bold text-base text-[#1b2433] mb-1.5">
                     {tile.title}
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                  <div className="text-xs sm:text-sm text-[#4b5565] leading-relaxed">
                     {tile.desc}
                   </div>
                 </div>

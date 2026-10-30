@@ -78,7 +78,7 @@ export const Home: React.FC<HomeProps> = ({
   return (
     <div id="beranda" className="min-h-screen">
       {/* 1. Hero Section */}
-      <section className="relative min-h-[90vh] lg:min-h-screen flex items-center bg-[#07142b] text-white overflow-hidden pt-20 pb-16">
+      <section className="relative min-h-[62vh] lg:min-h-[72vh] flex items-center bg-[#07142b] text-white overflow-hidden pt-24 pb-14">
         <div className="absolute inset-0 z-0">
           <img src={heroImg} alt="Hero" className="w-full h-full object-cover opacity-25" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#07142b] via-[#07142b]/90 to-transparent"></div>
@@ -95,20 +95,13 @@ export const Home: React.FC<HomeProps> = ({
             <p className="text-lg text-white/80 max-w-2xl leading-relaxed">
               Tanpa perlu paham koding. Ceritakan idenya, kami pandu sampai aplikasinya jadi dan bisa dipakai.
             </p>
-            <div className="flex flex-wrap gap-4 pt-2">
-              <button
-                onClick={() => onRegisterClick(undefined, cms.buttons.find(b => b.show)?.url || 'https://lynk.id/gubersmart')}
-                className="px-8 py-4 rounded-full bg-gradient-to-r from-[#e8cd8f] via-[#c9a35a] to-[#a77d36] text-[#07142b] font-bold text-base shadow-xl hover:opacity-95 transition flex items-center gap-2"
-              >
-                <span>Daftar Sekarang</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            <div className="pt-2">
               <button
                 onClick={() => {
                   const el = document.getElementById('kelas');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-8 py-4 rounded-full border-2 border-[#c9a35a] text-[#e8cd8f] font-bold text-base hover:bg-[#c9a35a]/10 transition"
+                className="px-8 py-3.5 rounded-full bg-gradient-to-r from-[#e8cd8f] via-[#c9a35a] to-[#a77d36] text-[#07142b] font-bold text-base shadow-xl hover:opacity-95 transition"
               >
                 Lihat Kelas
               </button>
@@ -157,12 +150,12 @@ export const Home: React.FC<HomeProps> = ({
             </p>
             <button
               onClick={() => {
-                const el = document.getElementById('visi-misi');
+                const el = document.getElementById('kelas');
                 el?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="px-6 py-3 rounded-full bg-gradient-to-r from-[#e8cd8f] via-[#c9a35a] to-[#a77d36] text-[#07142b] font-bold text-sm shadow-md transition hover:opacity-95"
             >
-              Selengkapnya
+              Lihat Kelas
             </button>
           </div>
 
@@ -177,47 +170,6 @@ export const Home: React.FC<HomeProps> = ({
               </p>
               <div className="w-8 h-[1px] bg-[#c9a35a]"></div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Visi dan Misi */}
-      <section id="visi-misi" className="py-16 bg-[#f1ece2]">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Visi Card */}
-          <div className="bg-[#07142b] text-white rounded-[18px] p-8 shadow-xl border border-[#c9a35a]/30 relative overflow-hidden">
-            <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#c9a35a_1px,transparent_1px)] [background-size:16px_16px]"></div>
-            <div className="relative z-10 space-y-4">
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e8cd8f]">VISI</span>
-              <h3 className="text-2xl font-serif font-bold text-white">Wujud Nyata Kreativitas</h3>
-              <p className="text-white/80 leading-relaxed text-base">
-                Menjadikan setiap orang mampu mewujudkan idenya menjadi aplikasi nyata tanpa harus memahami koding.
-              </p>
-            </div>
-          </div>
-
-          {/* Misi Card */}
-          <div className="bg-white rounded-[18px] p-8 shadow-xl border border-[#e7e1d5] space-y-4">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">MISI</span>
-            <h3 className="text-2xl font-serif font-bold text-[#1b2433]">Langkah Strategis Kami</h3>
-            <ul className="space-y-3 text-sm text-[#4b5565]">
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold text-xs flex items-center justify-center shrink-0">1</span>
-                <span>Menyediakan pembelajaran membuat aplikasi yang sederhana dan mudah diikuti oleh siapa saja.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold text-xs flex items-center justify-center shrink-0">2</span>
-                <span>Memandu peserta dari ide sampai aplikasi jadi lewat langkah yang jelas.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold text-xs flex items-center justify-center shrink-0">3</span>
-                <span>Membekali peserta dengan prompt dan metode yang siap dipakai.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="w-6 h-6 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold text-xs flex items-center justify-center shrink-0">4</span>
-                <span>Membangun komunitas yang saling mendukung dalam berkarya.</span>
-              </li>
-            </ul>
           </div>
         </div>
       </section>
@@ -278,55 +230,21 @@ export const Home: React.FC<HomeProps> = ({
         </div>
       </section>
 
-      {/* 6. Alur Belajar */}
-      <section className="py-16 bg-[#f1ece2]">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">Cara Belajar</span>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#1b2433]">Empat Langkah Menjadi Aplikasi</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-center space-y-3">
-              <div className="w-10 h-10 mx-auto rounded-full border-2 border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-lg">1</div>
-              <h4 className="font-serif font-bold text-lg text-[#1b2433]">Tulis Ide</h4>
-              <p className="text-sm text-[#4b5565]">Sampaikan apa yang ingin Anda buat dengan bahasa sederhana.</p>
-            </div>
-            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-center space-y-3">
-              <div className="w-10 h-10 mx-auto rounded-full border-2 border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-lg">2</div>
-              <h4 className="font-serif font-bold text-lg text-[#1b2433]">Susun Prompt</h4>
-              <p className="text-sm text-[#4b5565]">Gunakan panduan instruksi siap pakai yang kami sediakan.</p>
-            </div>
-            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-center space-y-3">
-              <div className="w-10 h-10 mx-auto rounded-full border-2 border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-lg">3</div>
-              <h4 className="font-serif font-bold text-lg text-[#1b2433]">Bangun Aplikasi</h4>
-              <p className="text-sm text-[#4b5565]">Sistem memproses dan mewujudkan aplikasi Anda seketika.</p>
-            </div>
-            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-center space-y-3">
-              <div className="w-10 h-10 mx-auto rounded-full border-2 border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-lg">4</div>
-              <h4 className="font-serif font-bold text-lg text-[#1b2433]">Publikasikan</h4>
-              <p className="text-sm text-[#4b5565]">Bagikan tautan atau file aplikasi Anda ke siapa saja.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* 7. Keunggulan Section */}
-      <section id="keunggulan" className="py-20 bg-[#07142b] text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#c9a35a_1px,transparent_1px)] [background-size:20px_20px]"></div>
-        <div className="max-w-[1200px] mx-auto px-4 md:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <section id="keunggulan" className="py-20 bg-[#f8f5ef]">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 relative">
-            <div className="rounded-[18px] overflow-hidden shadow-2xl border border-[#c9a35a]/40 aspect-[1.15/1]">
+            <div className="rounded-[18px] overflow-hidden shadow-xl border border-[#e7e1d5] aspect-[1.15/1] bg-white">
               <img src={keunggulanImg} alt="Keunggulan" className="w-full h-full object-cover" />
             </div>
           </div>
 
           <div className="lg:col-span-6 space-y-6">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e8cd8f]">Keunggulan</span>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">Keunggulan</span>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#1b2433]">
               Belajar Lebih Mudah dengan Dukungan Lengkap
             </h2>
-            <p className="text-base text-white/80 leading-relaxed">
+            <p className="text-base text-[#4b5565] leading-relaxed">
               Nikmati fasilitas belajar terpadu yang membimbing Anda dari nol sampai mahir tanpa hambatan.
             </p>
 
@@ -338,8 +256,8 @@ export const Home: React.FC<HomeProps> = ({
                 'Komunitas Belajar',
                 'Praktik Langsung'
               ].map((item, idx) => (
-                <div key={idx} className="p-4 rounded-[12px] bg-[#0b1c38] border border-[#c9a35a]/30 flex items-center justify-between">
-                  <span className="font-serif font-semibold text-[#e8cd8f]">{item}</span>
+                <div key={idx} className="p-4 rounded-[12px] bg-white border border-[#e7e1d5] shadow-sm flex items-center justify-between">
+                  <span className="font-serif font-semibold text-[#1b2433]">{item}</span>
                   <CheckCircle className="w-5 h-5 text-[#c9a35a]" />
                 </div>
               ))}
@@ -351,7 +269,7 @@ export const Home: React.FC<HomeProps> = ({
                   const el = document.getElementById('karya');
                   el?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-8 py-3.5 rounded-full bg-gradient-to-r from-[#e8cd8f] via-[#c9a35a] to-[#a77d36] text-[#07142b] font-bold text-sm shadow-lg hover:opacity-95 transition"
+                className="px-8 py-3.5 rounded-full bg-gradient-to-r from-[#e8cd8f] via-[#c9a35a] to-[#a77d36] text-[#07142b] font-bold text-sm shadow-md hover:opacity-95 transition"
               >
                 Lihat Karya
               </button>

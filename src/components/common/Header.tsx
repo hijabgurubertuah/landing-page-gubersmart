@@ -86,16 +86,8 @@ export const Header: React.FC<HeaderProps> = ({
             );
           })}
 
-          {/* Last menu item: Masuk or Dasbor */}
-          {currentRole === 'guest' ? (
-            <button
-              type="button"
-              onClick={onOpenLogin}
-              className="py-1 text-sm font-medium text-gray-200 hover:text-[#e8cd8f] transition"
-            >
-              Masuk
-            </button>
-          ) : (
+          {/* Last menu item: Dasbor if logged in */}
+          {currentRole !== 'guest' && (
             <button
               type="button"
               onClick={() => onNavigate('admin')}

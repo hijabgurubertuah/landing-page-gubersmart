@@ -30,13 +30,11 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { AdminClasses } from './components/admin/AdminClasses';
 import { AdminTestimonials } from './components/admin/AdminTestimonials';
 import { AdminPortfolio } from './components/admin/AdminPortfolio';
-import { AdminTips } from './components/admin/AdminTips';
 import { AdminFaq } from './components/admin/AdminFaq';
 import { AdminPassword } from './components/admin/AdminPassword';
 import { AdminCMS } from './components/admin/AdminCMS';
 import { AdminSync } from './components/admin/AdminSync';
 import { AdminFirebase } from './components/admin/AdminFirebase';
-import { AdminActivityLogs } from './components/admin/AdminActivityLogs';
 import { AdminAccounts } from './components/admin/AdminAccounts';
 
 export default function App() {
@@ -282,9 +280,8 @@ export default function App() {
           {currentAdminTab === 'dasbor' && (
             <AdminDashboard
               classes={classes}
-              tips={tips}
+              karyaList={karyaList}
               testimonials={testimonials}
-              logs={logs}
               showToast={showToast}
             />
           )}
@@ -306,13 +303,6 @@ export default function App() {
             <AdminPortfolio
               karyaList={karyaList}
               onSaveKarya={handleSaveKarya}
-              showToast={showToast}
-            />
-          )}
-          {currentAdminTab === 'tips' && (
-            <AdminTips
-              tips={tips}
-              onSaveTips={handleSaveTips}
               showToast={showToast}
             />
           )}
@@ -347,9 +337,6 @@ export default function App() {
           )}
           {currentAdminTab === 'firebase' && currentRole === 'superadmin' && (
             <AdminFirebase />
-          )}
-          {currentAdminTab === 'logs' && currentRole === 'superadmin' && (
-            <AdminActivityLogs logs={logs} />
           )}
           {currentAdminTab === 'akun' && currentRole === 'superadmin' && (
             <AdminAccounts

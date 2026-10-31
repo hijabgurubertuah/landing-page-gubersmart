@@ -38,6 +38,7 @@ export const Home: React.FC<HomeProps> = ({
 }) => {
   const [showWaFloat, setShowWaFloat] = useState(false);
   const [activeTestiIndex, setActiveTestiIndex] = useState(0);
+  const [activePortfolioIndex, setActivePortfolioIndex] = useState(0);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,6 +48,24 @@ export const Home: React.FC<HomeProps> = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Auto slide carousel testimoni
+  useEffect(() => {
+    if (testimonials.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveTestiIndex(prev => (prev >= testimonials.length - 1 ? 0 : prev + 1));
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  // Auto slide carousel karya pada mobile
+  useEffect(() => {
+    if (portfolio.length <= 1) return;
+    const interval = setInterval(() => {
+      setActivePortfolioIndex(prev => (prev >= Math.min(portfolio.length, 4) - 1 ? 0 : prev + 1));
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [portfolio.length]);
 
   const activeClasses = classes.filter(c => c.status === 'aktif');
   const publishedTips = tips.filter(t => t.status === 'terbit').slice(0, 3);
@@ -343,7 +362,8 @@ export const Home: React.FC<HomeProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Desktop: Grid 4 Kolom */}
+          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {portfolio.slice(0, 4).map((item) => {
               const portImg = getImageSrc(item.image) || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=600&q=80';
               return (
@@ -365,6 +385,68 @@ export const Home: React.FC<HomeProps> = ({
               );
             })}
           </div>
+
+          {/* Mobile: Carousel Auto Berjalan */}
+          {portfolio.length > 0 && (
+            <div className="md:hidden relative">
+              {(() => {
+                const item = portfolio.slice(0, 4)[activePortfolioIndex] || portfolio[0];
+                const portImg = getImageSrc(item.image) || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=600&q=80';
+                return (
+                  <div>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group bg-white rounded-[18px] overflow-hidden shadow-md border border-[#e7e1d5] block transition"
+                    >
+                      <div className="relative aspect-[1.45/1] overflow-hidden bg-[#f1ece2]">
+                        <img src={portImg} alt={item.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="p-4 space-y-1">
+                        <p className="text-xs text-[#a77d36] font-semibold">{item.category}</p>
+                        <h3 className="font-serif font-bold text-base text-[#1b2433]">{item.title}</h3>
+                      </div>
+                    </a>
+
+                    <div className="flex items-center justify-between pt-4 px-2">
+                      <div className="flex gap-1.5 items-center">
+                        {portfolio.slice(0, 4).map((_, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActivePortfolioIndex(idx)}
+                            aria-label={`Karya ${idx + 1}`}
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              idx === activePortfolioIndex ? 'w-6 bg-[#c9a35a]' : 'w-2 bg-[#e7e1d5]'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setActivePortfolioIndex(prev => (prev === 0 ? Math.min(portfolio.length, 4) - 1 : prev - 1))}
+                          className="w-10 h-10 rounded-full border border-[#e7e1d5] bg-white text-[#07142b] flex items-center justify-center shadow-sm"
+                          aria-label="Sebelumnya"
+                        >
+                          <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActivePortfolioIndex(prev => (prev >= Math.min(portfolio.length, 4) - 1 ? 0 : prev + 1))}
+                          className="w-10 h-10 rounded-full border border-[#e7e1d5] bg-white text-[#07142b] flex items-center justify-center shadow-sm"
+                          aria-label="Selanjutnya"
+                        >
+                          <ChevronRight className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </section>
       )}
 

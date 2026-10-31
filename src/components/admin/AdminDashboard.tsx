@@ -2,27 +2,25 @@
 
 import React, { useState } from 'react';
 import { Download } from 'lucide-react';
-import { ClassItem, TipsItem, TestimonialItem, ActivityLog } from '../../types';
+import { ClassItem, KaryaItem, TestimonialItem } from '../../types';
 
 interface AdminDashboardProps {
   classes: ClassItem[];
-  tips: TipsItem[];
+  karyaList: KaryaItem[];
   testimonials: TestimonialItem[];
-  logs: ActivityLog[];
   showToast: (msg: string) => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   classes,
-  tips,
+  karyaList,
   testimonials,
-  logs,
   showToast,
 }) => {
   const [period, setPeriod] = useState<'7' | '30' | 'all'>('30');
 
   const activeClassesCount = classes.filter((c) => c.status === 'active').length;
-  const publishedTipsCount = tips.filter((t) => t.status === 'published').length;
+  const totalKaryaCount = karyaList.length;
   const activeTestimonialsCount = testimonials.filter((t) => t.isActive).length;
   const totalClicks = classes.reduce((sum, c) => sum + (c.clicksCount || 0), 0);
 
@@ -90,10 +88,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         <div className="bg-white rounded-[18px] p-6 shadow-sm border border-[#e7e1d5]">
           <div className="text-xs font-semibold text-[#a77d36] uppercase tracking-wider mb-2">
-            Tips Terbit
+            Portofolio Karya
           </div>
           <div className="font-serif text-3xl font-bold text-[#07142b]">
-            {publishedTipsCount}
+            {totalKaryaCount}
           </div>
         </div>
 
@@ -172,34 +170,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Aktivitas Terbaru */}
-      <div className="bg-white rounded-[18px] p-6 sm:p-8 shadow-sm border border-[#e7e1d5] space-y-4">
-        <h3 className="font-serif font-bold text-lg text-[#1b2433]">
-          Aktivitas Terbaru
-        </h3>
-        <div className="divide-y divide-[#f8f5ef]">
-          {logs.slice(0, 5).map((log) => (
-            <div
-              key={log.id}
-              className="py-3 flex items-center justify-between gap-4 text-sm"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xs uppercase font-semibold text-[#a77d36]">
-                  {log.role}
-                </span>
-                <span className="text-[#1b2433]">{log.action}</span>
-              </div>
-              <span className="text-xs text-[#6b7280] flex-shrink-0">
-                {new Date(log.timestamp).toLocaleTimeString('id-ID', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
     </div>

@@ -234,22 +234,6 @@ export default function App() {
             onShowToast={showToast}
           />
         )}
-        {activeAdminTab === 'tips' && (
-          <TipsManage
-            tips={tips}
-            onSave={(item) => setTips(prev => {
-              const idx = prev.findIndex(t => t.id === item.id);
-              if (idx >= 0) {
-                const updated = [...prev];
-                updated[idx] = item;
-                return updated;
-              }
-              return [...prev, item];
-            })}
-            onDelete={(id) => setTips(prev => prev.filter(t => t.id !== id))}
-            onShowToast={showToast}
-          />
-        )}
         {activeAdminTab === 'faq' && (
           <FaqManage
             faqs={faqs}
@@ -295,9 +279,6 @@ export default function App() {
         )}
         {activeAdminTab === 'firebase' && currentUser === 'superadmin' && (
           <FirebaseTab />
-        )}
-        {activeAdminTab === 'log' && currentUser === 'superadmin' && (
-          <ActivityLogs logs={activityLogs} />
         )}
         {activeAdminTab === 'kelola-admin' && currentUser === 'superadmin' && (
           <AdminManage

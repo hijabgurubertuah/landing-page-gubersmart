@@ -44,7 +44,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'kelas', label: 'Kelas' },
     { id: 'testimoni', label: 'Testimoni' },
     { id: 'karya', label: 'Karya' },
-    { id: 'tips', label: 'Tips' },
     { id: 'faq', label: 'FAQ' },
     { id: 'sandi', label: 'Kata Sandi' },
     ...(isSuperadmin
@@ -52,7 +51,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           { id: 'cms', label: 'CMS' },
           { id: 'sinkronisasi', label: 'Sinkronisasi' },
           { id: 'firebase', label: 'Firebase' },
-          { id: 'logs', label: 'Log Aktivitas' },
           { id: 'akun', label: 'Kelola Admin' },
         ]
       : []),

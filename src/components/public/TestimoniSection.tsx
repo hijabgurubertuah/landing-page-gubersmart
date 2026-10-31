@@ -1,6 +1,6 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { TestimonialItem } from '../../types';
 
@@ -12,7 +12,21 @@ export const TestimoniSection: React.FC<TestimoniSectionProps> = ({
   testimonials,
 }) => {
   const [mobileIndex, setMobileIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+
   const activeItems = testimonials.filter((t) => t.isActive);
+
+  // Auto-slide carousel pada HP setiap 4 detik (pause saat disentuh/di-hover)
+  useEffect(() => {
+    if (activeItems.length <= 1 || isPaused) return;
+
+    const interval = setInterval(() => {
+      setMobileIndex((prev) => (prev < activeItems.length - 1 ? prev + 1 : 0));
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [activeItems.length, isPaused]);
 
   const prevSlide = () => {
     setMobileIndex((prev) => (prev > 0 ? prev - 1 : activeItems.length - 1));
@@ -22,7 +36,27 @@ export const TestimoniSection: React.FC<TestimoniSectionProps> = ({
     setMobileIndex((prev) => (prev < activeItems.length - 1 ? prev + 1 : 0));
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsPaused(true);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    setIsPaused(false);
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    if (diff > 50) {
+      nextSlide();
+    } else if (diff < -50) {
+      prevSlide();
+    }
+    setTouchStart(null);
+  };
+
   if (activeItems.length === 0) return null;
+
+  const currentItem = activeItems[mobileIndex] || activeItems[0];
 
   return (
     <section className="py-20 max-w-[1200px] 2xl:max-w-[1320px] mx-auto px-4 sm:px-6">
@@ -55,33 +89,59 @@ export const TestimoniSection: React.FC<TestimoniSectionProps> = ({
         ))}
       </div>
 
-      {/* Mobile: Carousel dengan tombol geser fungsional */}
-      <div className="sm:hidden relative">
-        <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] flex flex-col justify-between min-h-[220px]">
-          <p className="font-serif italic text-[#4b5565] text-base leading-relaxed mb-6">
-            &ldquo;{activeItems[mobileIndex].quote}&rdquo;
-          </p>
-          <div className="pt-4 border-t border-[#e7e1d5]">
-            <div className="font-serif font-bold text-[#1b2433] text-base">
-              {activeItems[mobileIndex].name}
-            </div>
-            <div className="text-xs text-[#a77d36] mt-0.5">
-              {activeItems[mobileIndex].role}
+      {/* Mobile: Carousel Otomatis Berjalan */}
+      <div
+        className="sm:hidden relative"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="overflow-hidden rounded-[18px]">
+          <div
+            key={currentItem.id}
+            className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] flex flex-col justify-between min-h-[220px] transition-all duration-500 ease-out"
+          >
+            <p className="font-serif italic text-[#4b5565] text-base leading-relaxed mb-6">
+              &ldquo;{currentItem.quote}&rdquo;
+            </p>
+            <div className="pt-4 border-t border-[#e7e1d5]">
+              <div className="font-serif font-bold text-[#1b2433] text-base">
+                {currentItem.name}
+              </div>
+              <div className="text-xs text-[#a77d36] mt-0.5">
+                {currentItem.role}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Tombol Geser Carousel */}
+        {/* Kontrol & Indikator Carousel */}
         <div className="flex items-center justify-between pt-4 px-2">
-          <div className="text-xs text-[#6b7280]">
-            {mobileIndex + 1} / {activeItems.length}
+          {/* Indikator Titik */}
+          <div className="flex gap-1.5 items-center">
+            {activeItems.map((_, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setMobileIndex(idx)}
+                aria-label={`Pindah ke testimoni ${idx + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  idx === mobileIndex
+                    ? 'w-6 bg-[#c9a35a]'
+                    : 'w-2 bg-[#e7e1d5] hover:bg-[#c9a35a]/50'
+                }`}
+              />
+            ))}
           </div>
+
+          {/* Tombol Geser */}
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={prevSlide}
               aria-label="Sebelumnya"
-              className="w-10 h-10 rounded-full border border-[#e7e1d5] bg-white text-[#07142b] flex items-center justify-center hover:bg-[#f8f5ef] transition"
+              className="w-11 h-11 rounded-full border border-[#e7e1d5] bg-white text-[#07142b] flex items-center justify-center hover:bg-[#f8f5ef] active:scale-95 transition shadow-sm"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -89,7 +149,7 @@ export const TestimoniSection: React.FC<TestimoniSectionProps> = ({
               type="button"
               onClick={nextSlide}
               aria-label="Selanjutnya"
-              className="w-10 h-10 rounded-full border border-[#e7e1d5] bg-white text-[#07142b] flex items-center justify-center hover:bg-[#f8f5ef] transition"
+              className="w-11 h-11 rounded-full border border-[#e7e1d5] bg-white text-[#07142b] flex items-center justify-center hover:bg-[#f8f5ef] active:scale-95 transition shadow-sm"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

@@ -41,7 +41,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'kelas', label: 'Kelas', icon: BookOpen },
     { id: 'testimoni', label: 'Testimoni', icon: MessageSquare },
     { id: 'karya', label: 'Karya', icon: Image },
-    { id: 'tips', label: 'Tips', icon: FileText },
     { id: 'faq', label: 'FAQ', icon: HelpCircle },
     { id: 'sandi', label: 'Kata Sandi', icon: Key },
   ];
@@ -50,7 +49,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'cms', label: 'CMS', icon: Settings },
     { id: 'sinkronisasi', label: 'Sinkronisasi', icon: RefreshCw },
     { id: 'firebase', label: 'Firebase', icon: Database },
-    { id: 'log', label: 'Log Aktivitas', icon: Activity },
     { id: 'kelola-admin', label: 'Kelola Admin', icon: Users },
   ] : [];
 

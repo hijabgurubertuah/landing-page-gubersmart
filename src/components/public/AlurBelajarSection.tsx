@@ -6,23 +6,23 @@ export const AlurBelajarSection: React.FC = () => {
   const steps = [
     {
       num: 1,
-      title: 'Tulis Ide',
-      desc: 'Ceritakan masalah yang ingin diselesaikan dan fitur apa yang Anda bayangkan.',
+      title: 'Ceritakan Ide',
+      desc: 'Ceritakan dan Jelaskan Aplikasi apa yang ingin kamu buat.',
     },
     {
       num: 2,
-      title: 'Susun Prompt',
-      desc: 'Terjemahkan ide menjadi instruksi terstruktur dengan bantuan panduan kami.',
+      title: 'Ubah ide Jadi Prompt',
+      desc: 'Menggunakan Skill dari GuberSmart akan mengubah cerita anda menjadi Prompt Lengkap.',
     },
     {
       num: 3,
-      title: 'Bangun Aplikasi',
-      desc: 'Biarkan AI menyusun kerangka dan logika aplikasi secara bertahap.',
+      title: 'Proses Mudah',
+      desc: 'Prompt hasil akan di ubah menjadi Aplikasi jadi',
     },
     {
       num: 4,
-      title: 'Publikasikan',
-      desc: 'Uji coba di ponsel atau komputer, lalu rilis aplikasi agar siap dipakai.',
+      title: 'Publish Hasil',
+      desc: 'Aplikasi anda siap di Publish langsung dengan cara yang Mudah ke Vercel bahkan Domain Profesional.',
     },
   ];
 
@@ -41,19 +41,19 @@ export const AlurBelajarSection: React.FC = () => {
         {steps.map((s) => (
           <div
             key={s.num}
-            className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] flex flex-col justify-between hover:-translate-y-1 transition duration-300"
+            className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] flex flex-col hover:-translate-y-1 transition duration-300"
           >
-            <div>
-              <div className="w-10 h-10 rounded-full border border-[#c9a35a] text-[#a77d36] font-serif font-bold text-base flex items-center justify-center mb-5">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="w-8 h-8 rounded-full border border-[#c9a35a] text-[#a77d36] font-serif font-bold text-sm flex items-center justify-center shrink-0">
                 {s.num}
-              </div>
-              <h3 className="font-serif font-bold text-lg text-[#1b2433] mb-2">
+              </span>
+              <h3 className="font-serif font-bold text-base sm:text-lg text-[#1b2433] leading-snug">
                 {s.title}
               </h3>
-              <p className="text-sm text-[#4b5565] leading-relaxed">
-                {s.desc}
-              </p>
             </div>
+            <p className="text-sm text-[#4b5565] leading-relaxed">
+              {s.desc}
+            </p>
           </div>
         ))}
       </div>

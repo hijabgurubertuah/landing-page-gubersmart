@@ -13,6 +13,7 @@ import {
 import { HeroSection } from '../components/public/HeroSection';
 import { PitaKeunggulan } from '../components/public/PitaKeunggulan';
 import { ProfilSection } from '../components/public/ProfilSection';
+import { AlurBelajarSection } from '../components/public/AlurBelajarSection';
 import { KelasSection } from '../components/public/KelasSection';
 import { KeunggulanSection } from '../components/public/KeunggulanSection';
 import { KaryaSection } from '../components/public/KaryaSection';
@@ -59,6 +60,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <HeroSection cms={cms} onNavigate={onNavigate} />
         <PitaKeunggulan />
         <ProfilSection cms={cms} onNavigate={onNavigate} />
+        <AlurBelajarSection />
         <KelasSection
           classes={classes}
           cms={cms}

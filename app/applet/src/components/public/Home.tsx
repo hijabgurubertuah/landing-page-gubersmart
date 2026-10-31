@@ -112,29 +112,36 @@ export const Home: React.FC<HomeProps> = ({
 
       {/* 2. Pita Keunggulan (Overlapping Hero) */}
       <section className="relative z-20 max-w-[1100px] mx-auto px-4 -mt-16 md:-mt-20">
-        <div className="bg-gradient-to-r from-[#0b1c38] to-[#12284a] rounded-[18px] p-6 md:p-8 shadow-2xl border border-[#c9a35a]/30 text-white grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
-          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2">
-            <p className="font-serif font-bold text-[#e8cd8f] text-base mb-1">Tanpa Koding</p>
-            <p className="text-xs text-white/70">Cukup bawa ide Anda</p>
+        <div className="bg-gradient-to-r from-[#0b1c38] to-[#12284a] rounded-[18px] p-5 md:p-7 shadow-2xl border border-[#c9a35a]/30 text-white grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
+          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2 flex items-start gap-3">
+            <span className="w-7 h-7 rounded-full border border-[#c9a35a]/60 text-[#e8cd8f] font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+            <div>
+              <p className="font-serif font-bold text-[#e8cd8f] text-base mb-0.5">Ceritakan Ide</p>
+              <p className="text-xs text-white/70">Jelaskan aplikasi impian Anda</p>
+            </div>
           </div>
-          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2">
-            <p className="font-serif font-bold text-[#e8cd8f] text-base mb-1">Dipandu Bertahap</p>
-            <p className="text-xs text-white/70">Langkah demi langkah sampai jadi</p>
+          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2 flex items-start gap-3">
+            <span className="w-7 h-7 rounded-full border border-[#c9a35a]/60 text-[#e8cd8f] font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+            <div>
+              <p className="font-serif font-bold text-[#e8cd8f] text-base mb-0.5">Ubah ide Jadi Prompt</p>
+              <p className="text-xs text-white/70">Dikonversi ke prompt lengkap</p>
+            </div>
           </div>
-          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2">
-            <p className="font-serif font-bold text-[#e8cd8f] text-base mb-1">Praktik Langsung</p>
-            <p className="text-xs text-white/70">Belajar sambil membangun</p>
+          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2 flex items-start gap-3">
+            <span className="w-7 h-7 rounded-full border border-[#c9a35a]/60 text-[#e8cd8f] font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+            <div>
+              <p className="font-serif font-bold text-[#e8cd8f] text-base mb-0.5">Proses Mudah</p>
+              <p className="text-xs text-white/70">Dibangun langsung jadi aplikasi</p>
+            </div>
           </div>
-          <div className="border-r border-[#c9a35a]/20 last:border-0 pr-2">
-            <p className="font-serif font-bold text-[#e8cd8f] text-base mb-1">Aplikasi Sungguhan</p>
-            <p className="text-xs text-white/70">Hasil akhir yang bisa dipakai</p>
-          </div>
-          <div className="col-span-2 md:col-span-1">
-            <p className="font-serif font-bold text-[#e8cd8f] text-base mb-1">Komunitas Member</p>
-            <p className="text-xs text-white/70">Belajar bersama, saling bantu</p>
+          <div className="flex items-start gap-3">
+            <span className="w-7 h-7 rounded-full border border-[#c9a35a]/60 text-[#e8cd8f] font-serif font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
+            <div>
+              <p className="font-serif font-bold text-[#e8cd8f] text-base mb-0.5">Publish Aplikasi</p>
+              <p className="text-xs text-white/70">Rilis ke Vercel & Domain</p>
+            </div>
           </div>
         </div>
-        <div className="w-3/4 mx-auto h-[1px] bg-gradient-to-r from-transparent via-[#c9a35a] to-transparent mt-6"></div>
       </section>
 
       {/* 3. Profil Section */}
@@ -169,6 +176,47 @@ export const Home: React.FC<HomeProps> = ({
                 "Setiap orang punya ide hebat. Tugas kami memastikan ide itu menjadi aplikasi nyata."
               </p>
               <div className="w-8 h-[1px] bg-[#c9a35a]"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Cara Belajar / Alur */}
+      <section className="py-16 bg-[#f1ece2]">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">Cara Belajar</span>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#1b2433]">Empat Langkah Menjadi Aplikasi</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-left space-y-2 hover:-translate-y-1 transition duration-300">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-sm shrink-0">1</span>
+                <h4 className="font-serif font-bold text-base sm:text-lg text-[#1b2433]">Ceritakan Ide</h4>
+              </div>
+              <p className="text-sm text-[#4b5565] leading-relaxed">Ceritakan dan Jelaskan Aplikasi apa yang ingin kamu buat.</p>
+            </div>
+            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-left space-y-2 hover:-translate-y-1 transition duration-300">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-sm shrink-0">2</span>
+                <h4 className="font-serif font-bold text-base sm:text-lg text-[#1b2433]">Ubah ide Jadi Prompt</h4>
+              </div>
+              <p className="text-sm text-[#4b5565] leading-relaxed">Menggunakan Skill dari GuberSmart akan mengubah cerita anda menjadi Prompt Lengkap.</p>
+            </div>
+            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-left space-y-2 hover:-translate-y-1 transition duration-300">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-sm shrink-0">3</span>
+                <h4 className="font-serif font-bold text-base sm:text-lg text-[#1b2433]">Proses Mudah</h4>
+              </div>
+              <p className="text-sm text-[#4b5565] leading-relaxed">Prompt hasil akan di ubah menjadi Aplikasi jadi</p>
+            </div>
+            <div className="bg-white rounded-[18px] p-6 shadow-md border border-[#e7e1d5] text-left space-y-2 hover:-translate-y-1 transition duration-300">
+              <div className="flex items-center gap-3">
+                <span className="w-8 h-8 rounded-full border border-[#c9a35a] text-[#a77d36] font-bold flex items-center justify-center font-serif text-sm shrink-0">4</span>
+                <h4 className="font-serif font-bold text-base sm:text-lg text-[#1b2433]">Publish Hasil</h4>
+              </div>
+              <p className="text-sm text-[#4b5565] leading-relaxed">Aplikasi anda siap di Publish langsung dengan cara yang Mudah ke Vercel bahkan Domain Profesional.</p>
             </div>
           </div>
         </div>

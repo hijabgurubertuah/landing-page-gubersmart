@@ -75,14 +75,23 @@ export default function App() {
     const parts = hash.split('/');
     const page = parts[0] || 'home';
     const param = parts[1] || '';
-    return { page, param };
+    const subParam = parts[2] || '';
+    return { page, param, subParam };
   };
 
   const [route, setRoute] = useState(getRouteFromHash);
+  const [cmsSubTab, setCmsSubTab] = useState<string>(() => {
+    const r = getRouteFromHash();
+    return r.page === 'admin' && r.param === 'cms' && r.subParam ? r.subParam : 'identitas';
+  });
 
   useEffect(() => {
     const handleHashChange = () => {
-      setRoute(getRouteFromHash());
+      const newRoute = getRouteFromHash();
+      setRoute(newRoute);
+      if (newRoute.page === 'admin' && newRoute.param === 'cms' && newRoute.subParam) {
+        setCmsSubTab(newRoute.subParam);
+      }
       window.scrollTo(0, 0);
     };
 
@@ -273,7 +282,20 @@ export default function App() {
         <AdminLayout
           currentRole={currentRole}
           currentTab={currentAdminTab}
-          onSelectTab={(tab) => navigateTo(`/admin/${tab}`)}
+          activeCmsSubTab={cmsSubTab}
+          onSelectTab={(tab, subTab) => {
+            if (tab === 'cms') {
+              const targetSub = subTab || cmsSubTab || 'identitas';
+              setCmsSubTab(targetSub);
+              navigateTo(`/admin/cms/${targetSub}`);
+            } else {
+              navigateTo(`/admin/${tab}`);
+            }
+          }}
+          onSelectCmsSubTab={(subTab) => {
+            setCmsSubTab(subTab);
+            navigateTo(`/admin/cms/${subTab}`);
+          }}
           onLogout={handleLogout}
           onViewWebsite={() => navigateTo('/')}
         >
@@ -323,6 +345,11 @@ export default function App() {
             <AdminCMS
               currentRole={currentRole}
               cms={cms}
+              activeTab={cmsSubTab}
+              onTabChange={(newTab) => {
+                setCmsSubTab(newTab);
+                navigateTo(`/admin/cms/${newTab}`);
+              }}
               onSaveCMS={handleSaveCMS}
               showToast={showToast}
               onPreview={() => navigateTo('/')}

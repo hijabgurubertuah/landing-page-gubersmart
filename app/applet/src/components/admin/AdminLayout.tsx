@@ -10,7 +10,8 @@ import { CmsSettings, UserRole, AdminUser } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 import { 
   LayoutDashboard, BookOpen, MessageSquare, Image, FileText, HelpCircle, 
-  Key, Settings, RefreshCw, Database, Activity, Users, LogOut, Menu, X, ArrowLeft 
+  Key, Settings, RefreshCw, Database, Activity, Users, LogOut, Menu, X, ArrowLeft,
+  ChevronDown, ChevronRight 
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -18,7 +19,9 @@ interface AdminLayoutProps {
   currentUser: UserRole;
   currentAdmin: AdminUser | null;
   activeTab: string;
-  onSelectTab: (tab: string) => void;
+  activeCmsSubTab?: string;
+  onSelectTab: (tab: string, subTab?: string) => void;
+  onSelectCmsSubTab?: (subTab: string) => void;
   onLogout: () => void;
   onBackToPublic: () => void;
   children: React.ReactNode;
@@ -29,12 +32,28 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   currentUser,
   currentAdmin,
   activeTab,
+  activeCmsSubTab = 'identitas',
   onSelectTab,
+  onSelectCmsSubTab,
   onLogout,
   onBackToPublic,
   children
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCmsExpanded, setIsCmsExpanded] = useState(true);
+
+  const cmsSubCategories = [
+    { id: 'identitas', label: 'Identitas' },
+    { id: 'tema', label: 'Tema' },
+    { id: 'navigasi', label: 'Navigasi' },
+    { id: 'tombol', label: 'Tombol' },
+    { id: 'bagian', label: 'Bagian Halaman' },
+    { id: 'halaman', label: 'Halaman' },
+    { id: 'fitur', label: 'Fitur' },
+    { id: 'media', label: 'Media' },
+    { id: 'kontak', label: 'Footer & Kontak' },
+    { id: 'pratinjau', label: 'Pratinjau' },
+  ];
 
   const adminNavItems = [
     { id: 'dasbor', label: 'Dasbor', icon: LayoutDashboard },
@@ -103,6 +122,87 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           {allNav.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
+
+            if (item.id === 'cms') {
+              return (
+                <div key={item.id} className="space-y-1">
+                  <div
+                    className={`w-full flex items-center justify-between rounded-[12px] transition ${
+                      isActive
+                        ? 'bg-[#12284a] text-[#e8cd8f] border-l-4 border-[#c9a35a] font-bold'
+                        : 'text-white/80 hover:bg-[#12284a] hover:text-white'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelectTab('cms', activeCmsSubTab || 'identitas');
+                        setIsCmsExpanded(true);
+                        setMobileOpen(false);
+                      }}
+                      className="flex-1 flex items-center gap-3 px-4 py-3 text-left text-sm font-medium"
+                    >
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#c9a35a]' : 'text-white/60'}`} />
+                      <span>{item.label}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsCmsExpanded(!isCmsExpanded);
+                      }}
+                      className="p-2 mr-2 text-white/60 hover:text-[#e8cd8f] transition rounded-lg"
+                      aria-label="Expand CMS Subkategori"
+                    >
+                      {isCmsExpanded ? (
+                        <ChevronDown className="w-4 h-4" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Expandable Sub-Categories */}
+                  {isCmsExpanded && (
+                    <div className="ml-5 pl-3 border-l border-[#1b365f] py-1 space-y-1">
+                      {cmsSubCategories.map((sub) => {
+                        const isSubActive = isActive && activeCmsSubTab === sub.id;
+                        return (
+                          <button
+                            key={sub.id}
+                            type="button"
+                            onClick={() => {
+                              if (sub.id === 'pratinjau') {
+                                setMobileOpen(false);
+                                onBackToPublic();
+                                return;
+                              }
+                              if (onSelectCmsSubTab) {
+                                onSelectCmsSubTab(sub.id);
+                              } else {
+                                onSelectTab('cms', sub.id);
+                              }
+                              setMobileOpen(false);
+                            }}
+                            className={`w-full py-2 px-3 rounded-lg text-left text-xs font-medium transition flex items-center justify-between ${
+                              isSubActive
+                                ? 'bg-[#18345e] text-[#e8cd8f] font-semibold border-l-2 border-[#c9a35a]'
+                                : 'text-white/70 hover:text-white hover:bg-[#12284a]/60'
+                            }`}
+                          >
+                            <span>{sub.label}</span>
+                            {isSubActive && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#c9a35a]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <button
                 key={item.id}

@@ -18,15 +18,24 @@ interface CmsManagerProps {
   onSaveCms: (newCms: CmsSettings) => void;
   currentUser: UserRole;
   onShowToast: (msg: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 export const CmsManager: React.FC<CmsManagerProps> = ({
   cms,
   onSaveCms,
   currentUser,
-  onShowToast
+  onShowToast,
+  activeTab: propActiveTab,
+  onTabChange
 }) => {
-  const [activeTab, setActiveTab] = useState<'identitas' | 'tema' | 'navigasi' | 'tombol' | 'bagian' | 'halaman' | 'fitur' | 'media' | 'kontak' | 'pratinjau'>('identitas');
+  const [internalActiveTab, setInternalActiveTab] = useState<string>(propActiveTab || 'identitas');
+  const activeTab = propActiveTab || internalActiveTab;
+  const setActiveTab = (tab: string) => {
+    setInternalActiveTab(tab);
+    if (onTabChange) onTabChange(tab);
+  };
   const [formData, setFormData] = useState<CmsSettings>(JSON.parse(JSON.stringify(cms)));
 
   const handleSaveTab = () => {

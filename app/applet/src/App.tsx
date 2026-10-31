@@ -57,6 +57,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<UserRole>(() => loadStorageData('currentUser', 'publik'));
   const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(() => loadStorageData('currentAdmin', null));
   const [activeAdminTab, setActiveAdminTab] = useState('dasbor');
+  const [activeCmsSubTab, setActiveCmsSubTab] = useState('identitas');
 
   const [viewRoute, setViewRoute] = useState<'home' | 'classDetail' | 'tipsList' | 'tipDetail' | 'portfolioList' | 'notFound' | 'admin'>('home');
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -170,7 +171,15 @@ export default function App() {
         currentUser={currentUser}
         currentAdmin={currentAdmin}
         activeTab={activeAdminTab}
-        onSelectTab={setActiveAdminTab}
+        activeCmsSubTab={activeCmsSubTab}
+        onSelectTab={(tab, subTab) => {
+          setActiveAdminTab(tab);
+          if (subTab) setActiveCmsSubTab(subTab);
+        }}
+        onSelectCmsSubTab={(subTab) => {
+          setActiveCmsSubTab(subTab);
+          setActiveAdminTab('cms');
+        }}
         onLogout={handleLogout}
         onBackToPublic={() => setViewRoute('home')}
       >
@@ -268,6 +277,8 @@ export default function App() {
             onSaveCms={(newCms) => setCms(newCms)}
             currentUser={currentUser}
             onShowToast={showToast}
+            activeTab={activeCmsSubTab}
+            onTabChange={setActiveCmsSubTab}
           />
         )}
         {activeAdminTab === 'sinkronisasi' && currentUser === 'superadmin' && (

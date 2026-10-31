@@ -13,6 +13,8 @@ interface AdminCMSProps {
   onSaveCMS: (newSettings: CMSSettings) => void;
   showToast: (msg: string) => void;
   onPreview: () => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
 export const AdminCMS: React.FC<AdminCMSProps> = ({
@@ -21,12 +23,23 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
   onSaveCMS,
   showToast,
   onPreview,
+  activeTab: propActiveTab,
+  onTabChange,
 }) => {
   // Local draft state
   const [draft, setDraft] = useState<CMSSettings>(JSON.parse(JSON.stringify(cms)));
-  const [activeTab, setActiveTab] = useState<string>(
-    currentRole === 'superadmin' ? 'identitas' : 'bagian'
+  const [internalActiveTab, setInternalActiveTab] = useState<string>(
+    propActiveTab || (currentRole === 'superadmin' ? 'identitas' : 'bagian')
   );
+
+  const activeTab = propActiveTab || internalActiveTab;
+
+  const setActiveTab = (tab: string) => {
+    setInternalActiveTab(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+    }
+  };
 
   const isSuperadmin = currentRole === 'superadmin';
   const hasChanges = JSON.stringify(draft) !== JSON.stringify(cms);

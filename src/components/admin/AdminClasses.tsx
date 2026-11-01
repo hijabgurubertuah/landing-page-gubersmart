@@ -8,6 +8,7 @@ import { ImageUploader } from '../common/ImageUploader';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 
 import { StorageService, normalizeClassItem } from '../../services/storageService';
+import { INITIAL_CLASSES } from '../../data/initialData';
 
 interface AdminClassesProps {
   classes: ClassItem[];
@@ -125,12 +126,26 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
     showToast('Berhasil mengunduh');
   };
 
+  const handleLoadTemplates = () => {
+    const templates = INITIAL_CLASSES.map(normalizeClassItem);
+    setItems(templates);
+    setHasChanges(true);
+    showToast('Templat kelas berhasil dimuat. Klik Simpan untuk menerapkan.');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-serif font-bold text-[#1b2433]">Kelola Kelas</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleLoadTemplates}
+            className="px-4 py-2 rounded-full border border-[#c9a35a] text-[#07142b] bg-[#f8f5ef] text-sm font-semibold hover:bg-[#e7e1d5] transition shadow-sm"
+          >
+            Muat Templat
+          </button>
           <button
             type="button"
             onClick={exportCsv}

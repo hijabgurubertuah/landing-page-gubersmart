@@ -261,11 +261,11 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 max-h-56 overflow-y-auto p-2.5 border border-[#e7e1d5] rounded-xl bg-[#f8f5ef]">
-              {galleryFiles.map((file) => {
+              {galleryFiles.map((file, idx) => {
                 const isSelected = value === file.url;
                 return (
                   <div
-                    key={file.id}
+                    key={`${file.id}-${idx}`}
                     onClick={() => onChange(file.url)}
                     className={`relative group aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition bg-white shadow-sm ${
                       isSelected

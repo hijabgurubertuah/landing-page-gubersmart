@@ -148,8 +148,17 @@ export function normalizeClassItem(c: any): ClassItem {
     }
   }
 
+  let status: 'active' | 'inactive' = 'active';
+  const st = String(c.status || '').toLowerCase();
+  if (st === 'inactive' || st === 'nonaktif' || st === 'false' || st === '0') {
+    status = 'inactive';
+  } else {
+    status = 'active';
+  }
+
   return {
     ...c,
+    status,
     curriculum,
     faqs,
     normalPrice: Number(c.normalPrice) || 0,
@@ -163,7 +172,10 @@ export const StorageService = {
   // Classes
   getClasses(): ClassItem[] {
     const raw = getStored<any[]>(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
-    if (!Array.isArray(raw)) return INITIAL_CLASSES.map(normalizeClassItem);
+    if (!Array.isArray(raw) || raw.length === 0) {
+      setStored(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
+      return INITIAL_CLASSES.map(normalizeClassItem);
+    }
     return raw.map(normalizeClassItem);
   },
   saveClasses(classes: ClassItem[]): void {
@@ -342,16 +354,20 @@ export const StorageService = {
   getGalleryImages(): GalleryFileItem[] {
     const stored = getStored<GalleryFileItem[]>(STORAGE_KEYS.GALLERY, []);
     const seenUrls = new Set<string>(stored.map((s) => s.url));
+    const seenIds = new Set<string>(stored.map((s) => s.id));
     const discovered: GalleryFileItem[] = [];
 
     // Temukan gambar yang pernah diunggah/dipakai di Kelas, Karya, Tips, dan Pengaturan CMS
     try {
       const classes = this.getClasses();
-      classes.forEach((c) => {
+      classes.forEach((c, index) => {
         if (c.image && c.image.trim() && !seenUrls.has(c.image)) {
           seenUrls.add(c.image);
+          let uniqueId = 'discovered_class_' + (c.id || index);
+          if (seenIds.has(uniqueId)) uniqueId += '_' + index;
+          seenIds.add(uniqueId);
           discovered.push({
-            id: 'discovered_' + c.id,
+            id: uniqueId,
             name: c.name || 'Gambar Kelas',
             url: c.image,
             source: 'imported',
@@ -360,11 +376,14 @@ export const StorageService = {
       });
 
       const karya = this.getKarya();
-      karya.forEach((k) => {
+      karya.forEach((k, index) => {
         if (k.image && k.image.trim() && !seenUrls.has(k.image)) {
           seenUrls.add(k.image);
+          let uniqueId = 'discovered_karya_' + (k.id || index);
+          if (seenIds.has(uniqueId)) uniqueId += '_' + index;
+          seenIds.add(uniqueId);
           discovered.push({
-            id: 'discovered_' + k.id,
+            id: uniqueId,
             name: k.title || 'Gambar Karya',
             url: k.image,
             source: 'imported',
@@ -373,11 +392,14 @@ export const StorageService = {
       });
 
       const tips = this.getTips();
-      tips.forEach((t) => {
+      tips.forEach((t, index) => {
         if (t.thumbnail && t.thumbnail.trim() && !seenUrls.has(t.thumbnail)) {
           seenUrls.add(t.thumbnail);
+          let uniqueId = 'discovered_tip_' + (t.id || index);
+          if (seenIds.has(uniqueId)) uniqueId += '_' + index;
+          seenIds.add(uniqueId);
           discovered.push({
-            id: 'discovered_' + t.id,
+            id: uniqueId,
             name: t.title || 'Gambar Tips',
             url: t.thumbnail,
             source: 'imported',
@@ -388,8 +410,11 @@ export const StorageService = {
       const cms = this.getCMS();
       if (cms.identity?.logo && !seenUrls.has(cms.identity.logo)) {
         seenUrls.add(cms.identity.logo);
+        let uniqueId = 'discovered_logo';
+        if (seenIds.has(uniqueId)) uniqueId += '_1';
+        seenIds.add(uniqueId);
         discovered.push({
-          id: 'discovered_logo',
+          id: uniqueId,
           name: 'Logo Aplikasi',
           url: cms.identity.logo,
           source: 'imported',
@@ -397,19 +422,25 @@ export const StorageService = {
       }
       if (cms.identity?.previewImage && !seenUrls.has(cms.identity.previewImage)) {
         seenUrls.add(cms.identity.previewImage);
+        let uniqueId = 'discovered_preview';
+        if (seenIds.has(uniqueId)) uniqueId += '_1';
+        seenIds.add(uniqueId);
         discovered.push({
-          id: 'discovered_preview',
+          id: uniqueId,
           name: 'Gambar Pratinjau',
           url: cms.identity.previewImage,
           source: 'imported',
         });
       }
       if (Array.isArray(cms.sections)) {
-        cms.sections.forEach((sec) => {
+        cms.sections.forEach((sec, index) => {
           if (sec.image && sec.image.trim() && !seenUrls.has(sec.image)) {
             seenUrls.add(sec.image);
+            let uniqueId = 'discovered_section_' + (sec.id || index);
+            if (seenIds.has(uniqueId)) uniqueId += '_' + index;
+            seenIds.add(uniqueId);
             discovered.push({
-              id: 'discovered_' + sec.id,
+              id: uniqueId,
               name: sec.label || 'Gambar ' + sec.id,
               url: sec.image,
               source: 'imported',
@@ -421,8 +452,11 @@ export const StorageService = {
         cms.media.gallery.forEach((url, idx) => {
           if (url && !seenUrls.has(url)) {
             seenUrls.add(url);
+            let uniqueId = 'discovered_gallery_' + idx;
+            if (seenIds.has(uniqueId)) uniqueId += '_' + idx;
+            seenIds.add(uniqueId);
             discovered.push({
-              id: 'discovered_gallery_' + idx,
+              id: uniqueId,
               name: `Media ${idx + 1}`,
               url,
               source: 'imported',

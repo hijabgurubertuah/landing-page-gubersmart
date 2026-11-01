@@ -27,7 +27,9 @@ export const ClassDetailPage: React.FC<ClassDetailPageProps> = ({
   onSelectClass,
   onOpenLogin,
 }) => {
-  const currentClass = classes.find((c) => c.slug === slug);
+  const currentClass = classes.find(
+    (c) => c.slug === slug || c.id === slug || (c.slug && c.slug.toLowerCase() === slug?.toLowerCase())
+  );
   const [openMeeting, setOpenMeeting] = useState<number | null>(1);
 
   if (!currentClass) {

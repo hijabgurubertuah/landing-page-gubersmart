@@ -21,22 +21,32 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
   onSaveClasses,
   showToast,
 }) => {
-  const [items, setItems] = useState<ClassItem[]>(() => classes.map(normalizeClassItem));
+  const [items, setItems] = useState<ClassItem[]>(() => (classes && classes.length > 0 ? classes.map(normalizeClassItem) : INITIAL_CLASSES.map(normalizeClassItem)));
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [editingItem, setEditingItem] = useState<ClassItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const filteredItems = items.filter((item) => {
     const matchStatus = statusFilter === 'all' || item.status === statusFilter;
     const matchSearch =
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.shortDesc.toLowerCase().includes(search.toLowerCase());
+      (item.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (item.shortDesc || '').toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
+
+  const persistAndSync = async (updated: ClassItem[]) => {
+    setItems(updated);
+    onSaveClasses(updated);
+    StorageService.saveClasses(updated);
+    try {
+      await StorageService.syncToAppsScript('Kelas', updated);
+    } catch {
+      // Ignore network sync error if offline or unconfigured
+    }
+  };
 
   const handleStartCreate = () => {
     const newItem: ClassItem = {
@@ -49,8 +59,8 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
       normalPrice: 299000,
       currentPrice: 199000,
       status: 'active',
-      quota: 'Sisa 10 tempat',
-      schedule: 'Setiap Sabtu (19.30 WIB)',
+      quota: '',
+      schedule: '',
       lynkidUrl: 'https://lynk.id',
       curriculum: [
         { meeting: 1, title: 'Pertemuan Pertama', content: 'Pembahasan materi dasar.' },
@@ -75,23 +85,19 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
     } else {
       updated = items.map((c) => (c.id === editingItem.id ? editingItem : c));
     }
-    setItems(updated);
+
+    await persistAndSync(updated);
     setEditingItem(null);
     setIsCreating(false);
-    setHasChanges(false);
-
-    onSaveClasses(updated);
-    StorageService.saveClasses(updated);
-    await StorageService.syncToAppsScript('Kelas', updated);
-    showToast('Berhasil disimpan & diperbarui');
+    showToast('Kelas berhasil disimpan & diperbarui');
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteConfirmId) return;
     const updated = items.filter((c) => c.id !== deleteConfirmId);
-    setItems(updated);
+    await persistAndSync(updated);
     setDeleteConfirmId(null);
-    setHasChanges(true);
+    showToast('Kelas berhasil dihapus');
   };
 
   const handleSaveAllToSheet = async () => {
@@ -99,14 +105,20 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
     setIsSaving(true);
     try {
       onSaveClasses(items);
+      StorageService.saveClasses(items);
       await StorageService.syncToAppsScript('Kelas', items);
-      setHasChanges(false);
-      showToast('Berhasil disimpan');
+      showToast('Berhasil disimpan & disinkronkan ke Spreadsheet');
     } catch {
-      showToast('Gagal menyimpan kelas');
+      showToast('Gagal menyinkronkan ke Spreadsheet');
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleLoadTemplates = async () => {
+    const templates = INITIAL_CLASSES.map(normalizeClassItem);
+    await persistAndSync(templates);
+    showToast('Templat kelas berhasil dimuat dan disimpan');
   };
 
   const exportCsv = () => {
@@ -115,7 +127,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
       ...items.map((c) => [
         c.id,
         c.slug,
-        `"${c.name.replace(/"/g, '""')}"`,
+        `"${(c.name || '').replace(/"/g, '""')}"`,
         c.normalPrice,
         c.currentPrice,
         c.status,
@@ -128,21 +140,19 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
     link.href = encodeURI(csvContent);
     link.download = `daftar_kelas_${Date.now()}.csv`;
     link.click();
-    showToast('Berhasil mengunduh');
-  };
-
-  const handleLoadTemplates = () => {
-    const templates = INITIAL_CLASSES.map(normalizeClassItem);
-    setItems(templates);
-    setHasChanges(true);
-    showToast('Templat kelas berhasil dimuat. Klik Simpan untuk menerapkan.');
+    showToast('Berhasil mengunduh CSV');
   };
 
   return (
     <div className="space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-serif font-bold text-[#1b2433]">Kelola Kelas</h2>
+        <div>
+          <h2 className="text-2xl font-serif font-bold text-[#1b2433]">Kelola Kelas</h2>
+          <p className="text-xs text-[#6b7280] mt-1">
+            Setiap perubahan langsung tersimpan otomatis dan tampil di halaman publik.
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
@@ -204,7 +214,14 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
       {/* Daftar Kelas */}
       {filteredItems.length === 0 ? (
         <div className="bg-white rounded-[18px] p-12 text-center text-[#6b7280] border border-[#e7e1d5]">
-          <p className="font-serif text-lg">Belum ada kelas</p>
+          <p className="font-serif text-lg mb-2">Belum ada kelas</p>
+          <button
+            type="button"
+            onClick={handleLoadTemplates}
+            className="text-xs text-[#a77d36] font-semibold underline"
+          >
+            Muat templat bawaan
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -216,7 +233,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
               <div className="space-y-3">
                 <div className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-[#07142b] border border-[#e7e1d5] mb-2">
                   {c.image ? (
-                    <img src={c.image} alt="" className="w-full h-full object-cover" />
+                    <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#07142b] to-[#1b365f] flex items-center justify-center text-[#e8cd8f] text-xs font-serif p-2 text-center">
                       {c.name || 'Kelas Guber Smart'}
@@ -224,8 +241,8 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   )}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase text-[#a77d36]">
-                    {c.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                  <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${c.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
+                    {c.status === 'active' ? 'Aktif (Tampil)' : 'Nonaktif'}
                   </span>
                   <span className="text-xs text-[#6b7280]">{c.clicksCount || 0} klik</span>
                 </div>
@@ -235,8 +252,15 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                 <p className="text-xs text-[#4b5565] line-clamp-2 leading-relaxed">
                   {c.shortDesc}
                 </p>
-                <div className="font-serif font-bold text-base text-[#07142b]">
-                  Rp{c.currentPrice.toLocaleString('id-ID')}
+                <div className="flex items-baseline gap-2">
+                  {c.normalPrice > c.currentPrice && (
+                    <span className="text-xs text-[#6b7280] line-through">
+                      Rp{c.normalPrice.toLocaleString('id-ID')}
+                    </span>
+                  )}
+                  <span className="font-serif font-bold text-base text-[#07142b]">
+                    Rp{c.currentPrice.toLocaleString('id-ID')}
+                  </span>
                 </div>
               </div>
 
@@ -247,15 +271,15 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                     setEditingItem(normalizeClassItem(c));
                     setIsCreating(false);
                   }}
-                  className="p-2 text-[#07142b] hover:bg-[#f8f5ef] rounded-full transition"
-                  aria-label="Edit"
+                  className="px-3 py-1.5 bg-[#f8f5ef] text-[#07142b] hover:bg-[#e7e1d5] rounded-lg text-xs font-semibold transition flex items-center gap-1"
                 >
-                  <Edit3 className="w-4 h-4" />
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Ubah</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setDeleteConfirmId(c.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-full transition"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
                   aria-label="Hapus"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -267,7 +291,10 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
       )}
 
       {/* TEPAT SATU TOMBOL SIMPAN PENGATURAN KE SPREADSHEET */}
-      <div className="flex items-center justify-end pt-6 border-t border-[#e7e1d5]">
+      <div className="flex items-center justify-between pt-6 border-t border-[#e7e1d5]">
+        <p className="text-xs text-[#6b7280]">
+          * Sinkronisasi lintas perangkat memerlukan Google Apps Script aktif di menu Sinkronisasi.
+        </p>
         <button
           type="button"
           disabled={isSaving}
@@ -279,7 +306,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
           }`}
         >
           {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
-          <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
+          <span>{isSaving ? 'Menyimpan...' : 'Simpan & Sinkronkan'}</span>
         </button>
       </div>
 
@@ -294,7 +321,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-serif font-bold text-[#1b2433] mb-6">
-              {isCreating ? 'Tambah Kelas' : 'Ubah Kelas'}
+              {isCreating ? 'Tambah Kelas Baru' : 'Ubah Kelas'}
             </h3>
 
             <form onSubmit={handleApplyForm} className="space-y-5">
@@ -314,8 +341,8 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                         ? e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
                         : editingItem.slug,
                     });
-                    setHasChanges(true);
                   }}
+                  placeholder="Contoh: Kelas Website AI Studio"
                   className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2.5 text-base text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
                 />
               </div>
@@ -330,7 +357,6 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   value={editingItem.slug}
                   onChange={(e) => {
                     setEditingItem({ ...editingItem, slug: e.target.value });
-                    setHasChanges(true);
                   }}
                   className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2.5 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
                 />
@@ -338,11 +364,10 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
 
               {/* Upload Gambar */}
               <ImageUploader
-                label="Gambar Kelas"
+                label="Gambar Sampul Kelas"
                 value={editingItem.image}
                 onChange={(newVal) => {
                   setEditingItem({ ...editingItem, image: newVal });
-                  setHasChanges(true);
                 }}
               />
 
@@ -361,7 +386,6 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                         ...editingItem,
                         normalPrice: val,
                       });
-                      setHasChanges(true);
                     }}
                     placeholder="Contoh: 299000"
                     className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
@@ -381,7 +405,6 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                         ...editingItem,
                         currentPrice: val,
                       });
-                      setHasChanges(true);
                     }}
                     placeholder="Contoh: 199000"
                     className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
@@ -391,7 +414,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-[#1b2433] mb-1">
-                  Status *
+                  Status Publikasi *
                 </label>
                 <select
                   value={editingItem.status}
@@ -400,27 +423,26 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                       ...editingItem,
                       status: e.target.value as 'active' | 'inactive',
                     });
-                    setHasChanges(true);
                   }}
                   className="w-full rounded-xl border border-[#e7e1d5] px-3 py-2.5 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none bg-white"
                 >
-                  <option value="active">Aktif (Tampil di Publik)</option>
-                  <option value="inactive">Nonaktif (Disembunyikan)</option>
+                  <option value="active">Aktif (Tampil di Website Publik)</option>
+                  <option value="inactive">Nonaktif (Disembunyikan dari Publik)</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-[#1b2433] mb-1">
-                  Tautan Lynk.id *
+                  Tautan Pendaftaran (Lynk.id / WhatsApp) *
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   required
                   value={editingItem.lynkidUrl}
                   onChange={(e) => {
                     setEditingItem({ ...editingItem, lynkidUrl: e.target.value });
-                    setHasChanges(true);
                   }}
+                  placeholder="lynk.id/namaproduk atau https://..."
                   className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
                 />
               </div>
@@ -433,9 +455,9 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   value={editingItem.shortDesc}
                   onValueChange={(val) => {
                     setEditingItem({ ...editingItem, shortDesc: val });
-                    setHasChanges(true);
                   }}
                   rows={2}
+                  placeholder="Ringkasan kelas yang menarik bagi peserta..."
                 />
               </div>
 
@@ -447,9 +469,9 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   value={editingItem.fullDesc}
                   onValueChange={(val) => {
                     setEditingItem({ ...editingItem, fullDesc: val });
-                    setHasChanges(true);
                   }}
                   rows={3}
+                  placeholder="Penjelasan detail mengenai manfaat dan isi kelas..."
                 />
               </div>
 
@@ -479,7 +501,6 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                               },
                             ];
                             setEditingItem({ ...editingItem, curriculum: updatedCurriculum });
-                            setHasChanges(true);
                           }}
                           className="text-xs text-[#a77d36] font-semibold hover:underline"
                         >
@@ -507,11 +528,10 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                                     ...editingItem,
                                     curriculum: updatedCurriculum,
                                   });
-                                  setHasChanges(true);
                                 }}
                                 className="text-xs text-red-600 hover:underline"
                               >
-                                Hapus
+                                Hapus Pertemuan
                               </button>
                             </div>
                             <input
@@ -527,10 +547,9 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                                   ...editingItem,
                                   curriculum: updatedCurriculum,
                                 });
-                                setHasChanges(true);
                               }}
                               placeholder="Judul Materi"
-                              className="w-full rounded-lg border border-[#e7e1d5] px-3 py-1.5 text-xs text-[#1b2433] bg-white focus:outline-none"
+                              className="w-full rounded-xl border border-[#e7e1d5] px-3 py-1.5 text-xs text-[#1b2433] bg-white focus:outline-none"
                             />
                             <AutoTextarea
                               value={curr.content || ''}
@@ -544,7 +563,6 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                                   ...editingItem,
                                   curriculum: updatedCurriculum,
                                 });
-                                setHasChanges(true);
                               }}
                               rows={1}
                               placeholder="Ringkasan Materi"
@@ -571,7 +589,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   type="submit"
                   className="px-6 py-2.5 rounded-full gold-gradient-bg text-[#07142b] text-sm font-semibold hover:brightness-105 transition shadow-sm"
                 >
-                  Terapkan
+                  Terapkan & Simpan
                 </button>
               </div>
             </form>

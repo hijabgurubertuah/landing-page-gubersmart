@@ -53,36 +53,22 @@ export const CmsManager: React.FC<CmsManagerProps> = ({
     { id: 'fitur', label: 'Fitur', icon: ToggleLeft },
     { id: 'media', label: 'Media', icon: Video },
     { id: 'kontak', label: 'Footer & Kontak', icon: PhoneCall },
-    { id: 'pratinjau', label: 'Pratinjau', icon: Eye },
   ];
+
+  const currentTab = tabs.find((t) => t.id === activeTab);
+  const CurrentIcon = currentTab?.icon || Settings;
 
   return (
     <div className="space-y-6">
       <div>
         <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#a77d36]">Superadmin</span>
         <h1 className="text-3xl font-serif font-bold text-[#1b2433]">CMS Pengaturan</h1>
-      </div>
-
-      {/* Tabs bar */}
-      <div className="flex flex-wrap gap-2 border-b border-[#e7e1d5] pb-4">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition ${
-                isActive
-                  ? 'bg-[#07142b] text-[#e8cd8f]'
-                  : 'bg-white border border-[#e7e1d5] text-[#4b5565] hover:bg-[#f1ece2]'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+        {currentTab && (
+          <div className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-[#8c743e]">
+            <CurrentIcon className="w-4 h-4 text-[#c9a35a]" />
+            <span>{currentTab.label}</span>
+          </div>
+        )}
       </div>
 
       {/* Tab Contents with explicit Save Button per tab */}

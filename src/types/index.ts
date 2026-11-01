@@ -183,3 +183,12 @@ export interface SyncSettings {
   isConnected: boolean;
   lastSyncedAt?: string;
 }
+
+export interface GalleryFileItem {
+  id: string;
+  name: string;
+  url: string;
+  date?: string;
+  source?: 'drive' | 'local' | 'imported';
+}
+

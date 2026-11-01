@@ -9,9 +9,9 @@ import React, { useState } from 'react';
 import { CmsSettings, UserRole, AdminUser } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 import { 
-  LayoutDashboard, BookOpen, MessageSquare, Image, FileText, HelpCircle, 
-  Key, Settings, RefreshCw, Database, Activity, Users, LogOut, Menu, X, ArrowLeft,
-  ChevronDown, ChevronRight 
+  LayoutDashboard, BookOpen, MessageSquare, Image, HelpCircle, 
+  Settings, RefreshCw, Database, LogOut, Menu, X, ArrowLeft,
+  ChevronDown, ChevronRight, Eye, ShieldCheck 
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -52,7 +52,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'fitur', label: 'Fitur' },
     { id: 'media', label: 'Media' },
     { id: 'kontak', label: 'Footer & Kontak' },
-    { id: 'pratinjau', label: 'Pratinjau' },
   ];
 
   const adminNavItems = [
@@ -61,14 +60,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'testimoni', label: 'Testimoni', icon: MessageSquare },
     { id: 'karya', label: 'Karya', icon: Image },
     { id: 'faq', label: 'FAQ', icon: HelpCircle },
-    { id: 'sandi', label: 'Kata Sandi', icon: Key },
+    { id: 'akun', label: 'Akun & Keamanan', icon: ShieldCheck },
   ];
 
   const superadminNavItems = currentUser === 'superadmin' ? [
     { id: 'cms', label: 'CMS', icon: Settings },
     { id: 'sinkronisasi', label: 'Sinkronisasi', icon: RefreshCw },
     { id: 'firebase', label: 'Firebase', icon: Database },
-    { id: 'kelola-admin', label: 'Kelola Admin', icon: Users },
   ] : [];
 
   const allNav = [...adminNavItems, ...superadminNavItems];
@@ -223,7 +221,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#1b365f]">
+        <div className="p-4 border-t border-[#1b365f] space-y-2">
+          <button
+            onClick={() => {
+              setMobileOpen(false);
+              onBackToPublic();
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] text-sm font-medium text-[#e8cd8f] bg-[#12284a] hover:bg-[#18345e] border border-[#c9a35a]/30 transition"
+          >
+            <Eye className="w-4 h-4 text-[#c9a35a]" />
+            <span>Pratinjau</span>
+          </button>
           <button
             onClick={onLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] text-sm font-medium text-red-400 hover:bg-red-500/10 transition"

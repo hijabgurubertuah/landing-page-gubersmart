@@ -259,18 +259,6 @@ export default function App() {
             onShowToast={showToast}
           />
         )}
-        {activeAdminTab === 'sandi' && (
-          <PasswordManage
-            currentUser={currentUser}
-            currentAdmin={currentAdmin}
-            onUpdatePassword={(newPass) => {
-              if (currentAdmin) {
-                setAdmins(prev => prev.map(a => a.id === currentAdmin.id ? { ...a, passwordHash: newPass } : a));
-              }
-            }}
-            onShowToast={showToast}
-          />
-        )}
         {activeAdminTab === 'cms' && currentUser === 'superadmin' && (
           <CmsManager
             cms={cms}
@@ -291,21 +279,35 @@ export default function App() {
         {activeAdminTab === 'firebase' && currentUser === 'superadmin' && (
           <FirebaseTab />
         )}
-        {activeAdminTab === 'kelola-admin' && currentUser === 'superadmin' && (
-          <AdminManage
-            admins={admins}
-            onSaveAdmin={(adm) => setAdmins(prev => {
-              const idx = prev.findIndex(a => a.id === adm.id);
-              if (idx >= 0) {
-                const updated = [...prev];
-                updated[idx] = adm;
-                return updated;
-              }
-              return [...prev, adm];
-            })}
-            onDeleteAdmin={(id) => setAdmins(prev => prev.filter(a => a.id !== id))}
-            onShowToast={showToast}
-          />
+        {(activeAdminTab === 'akun' || activeAdminTab === 'sandi' || activeAdminTab === 'kelola-admin') && (
+          <div className="space-y-8">
+            <PasswordManage
+              currentUser={currentUser}
+              currentAdmin={currentAdmin}
+              onUpdatePassword={(newPass) => {
+                if (currentAdmin) {
+                  setAdmins(prev => prev.map(a => a.id === currentAdmin.id ? { ...a, passwordHash: newPass } : a));
+                }
+              }}
+              onShowToast={showToast}
+            />
+            {currentUser === 'superadmin' && (
+              <AdminManage
+                admins={admins}
+                onSaveAdmin={(adm) => setAdmins(prev => {
+                  const idx = prev.findIndex(a => a.id === adm.id);
+                  if (idx >= 0) {
+                    const updated = [...prev];
+                    updated[idx] = adm;
+                    return updated;
+                  }
+                  return [...prev, adm];
+                })}
+                onDeleteAdmin={(id) => setAdmins(prev => prev.filter(a => a.id !== id))}
+                onShowToast={showToast}
+              />
+            )}
+          </div>
         )}
         <NotificationToast message={toastMessage} onClose={() => setToastMessage('')} />
       </AdminLayout>

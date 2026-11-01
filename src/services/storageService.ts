@@ -11,6 +11,7 @@ import {
   ActivityLog,
   AdminAccount,
   UserRole,
+  GalleryFileItem,
 } from '../types';
 import {
   INITIAL_CLASSES,
@@ -36,6 +37,7 @@ const STORAGE_KEYS = {
   ADMINS: 'guber_admins_v1',
   AUTH: 'guber_auth_v1',
   PASSWORDS: 'guber_passwords_v1',
+  GALLERY: 'guber_gallery_v1',
 };
 
 // Safe LocalStorage getter
@@ -268,15 +270,145 @@ export const StorageService = {
     }
   },
 
-  // Upload gambar ke Google Drive lewat Google Apps Script
+  // Galeri Gambar Tersimpan & Auto-discovery dari data yang ada
+  getGalleryImages(): GalleryFileItem[] {
+    const stored = getStored<GalleryFileItem[]>(STORAGE_KEYS.GALLERY, []);
+    const seenUrls = new Set<string>(stored.map((s) => s.url));
+    const discovered: GalleryFileItem[] = [];
+
+    // Temukan gambar yang pernah diunggah/dipakai di Kelas, Karya, Tips, dan Pengaturan CMS
+    try {
+      const classes = this.getClasses();
+      classes.forEach((c) => {
+        if (c.image && c.image.trim() && !seenUrls.has(c.image)) {
+          seenUrls.add(c.image);
+          discovered.push({
+            id: 'discovered_' + c.id,
+            name: c.name || 'Gambar Kelas',
+            url: c.image,
+            source: 'imported',
+          });
+        }
+      });
+
+      const karya = this.getKarya();
+      karya.forEach((k) => {
+        if (k.image && k.image.trim() && !seenUrls.has(k.image)) {
+          seenUrls.add(k.image);
+          discovered.push({
+            id: 'discovered_' + k.id,
+            name: k.title || 'Gambar Karya',
+            url: k.image,
+            source: 'imported',
+          });
+        }
+      });
+
+      const tips = this.getTips();
+      tips.forEach((t) => {
+        if (t.thumbnail && t.thumbnail.trim() && !seenUrls.has(t.thumbnail)) {
+          seenUrls.add(t.thumbnail);
+          discovered.push({
+            id: 'discovered_' + t.id,
+            name: t.title || 'Gambar Tips',
+            url: t.thumbnail,
+            source: 'imported',
+          });
+        }
+      });
+
+      const cms = this.getCMS();
+      if (cms.identity?.logo && !seenUrls.has(cms.identity.logo)) {
+        seenUrls.add(cms.identity.logo);
+        discovered.push({
+          id: 'discovered_logo',
+          name: 'Logo Aplikasi',
+          url: cms.identity.logo,
+          source: 'imported',
+        });
+      }
+      if (cms.identity?.previewImage && !seenUrls.has(cms.identity.previewImage)) {
+        seenUrls.add(cms.identity.previewImage);
+        discovered.push({
+          id: 'discovered_preview',
+          name: 'Gambar Pratinjau',
+          url: cms.identity.previewImage,
+          source: 'imported',
+        });
+      }
+      if (Array.isArray(cms.sections)) {
+        cms.sections.forEach((sec) => {
+          if (sec.image && sec.image.trim() && !seenUrls.has(sec.image)) {
+            seenUrls.add(sec.image);
+            discovered.push({
+              id: 'discovered_' + sec.id,
+              name: sec.label || 'Gambar ' + sec.id,
+              url: sec.image,
+              source: 'imported',
+            });
+          }
+        });
+      }
+      if (Array.isArray(cms.media?.gallery)) {
+        cms.media.gallery.forEach((url, idx) => {
+          if (url && !seenUrls.has(url)) {
+            seenUrls.add(url);
+            discovered.push({
+              id: 'discovered_gallery_' + idx,
+              name: `Media ${idx + 1}`,
+              url,
+              source: 'imported',
+            });
+          }
+        });
+      }
+    } catch {
+      // Safe fallback jika terjadi error parsing
+    }
+
+    if (discovered.length > 0) {
+      const merged = [...stored, ...discovered];
+      setStored(STORAGE_KEYS.GALLERY, merged.slice(0, 80));
+      return merged;
+    }
+
+    return stored;
+  },
+
+  // Simpan gambar baru ke galeri lokal
+  saveGalleryImage(item: GalleryFileItem): void {
+    const list = this.getGalleryImages();
+    const filtered = list.filter((i) => i.id !== item.id && i.url !== item.url);
+    const updated = [item, ...filtered].slice(0, 80);
+    setStored(STORAGE_KEYS.GALLERY, updated);
+  },
+
+  // Hapus gambar dari galeri
+  removeGalleryImage(idOrUrl: string): void {
+    const list = this.getGalleryImages();
+    const updated = list.filter((i) => i.id !== idOrUrl && i.url !== idOrUrl);
+    setStored(STORAGE_KEYS.GALLERY, updated);
+  },
+
+  // Upload gambar ke Google Drive lewat Google Apps Script dengan fallback otomatis
   async uploadImage(
     base64Data: string,
     fileName: string,
     mimeType = 'image/jpeg'
-  ): Promise<{ success: boolean; url?: string; fileId?: string; error?: string }> {
+  ): Promise<{ success: boolean; url?: string; fileId?: string; isLocalFallback?: boolean; error?: string }> {
     const sync = this.getSyncSettings();
+    const localId = 'img_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+
+    // Jika belum terhubung ke Apps Script, simpan langsung ke galeri lokal agar tidak hilang
     if (!sync.webAppUrl) {
-      return { success: false, error: 'Belum terhubung ke Apps Script' };
+      this.saveGalleryImage({
+        id: localId,
+        name: fileName,
+        url: base64Data,
+        date: new Date().toISOString(),
+        source: 'local',
+      });
+      return { success: true, url: base64Data, fileId: localId, isLocalFallback: true };
     }
 
     try {
@@ -294,46 +426,113 @@ export const StorageService = {
         folderId: sync.driveFolderId || undefined,
       };
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 14000);
+
       const res = await fetch(sync.webAppUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const json = await res.json();
         if (json.success && (json.url || json.fileId)) {
           const directUrl = json.url || `https://lh3.googleusercontent.com/d/${json.fileId}`;
+          // Rekam ke galeri drive
+          this.saveGalleryImage({
+            id: json.fileId || localId,
+            name: fileName,
+            url: directUrl,
+            date: new Date().toISOString(),
+            source: 'drive',
+          });
           return { success: true, url: directUrl, fileId: json.fileId };
         }
-        return { success: false, error: json.error || 'Gagal mengunggah berkas' };
       }
-      return { success: false, error: 'Gagal mengunggah berkas' };
-    } catch (err: any) {
-      return { success: false, error: err?.toString() };
+
+      // Jika server Apps Script gagal atau error respons, fallback ke data gambar lokal
+      this.saveGalleryImage({
+        id: localId,
+        name: fileName,
+        url: base64Data,
+        date: new Date().toISOString(),
+        source: 'local',
+      });
+      return { success: true, url: base64Data, fileId: localId, isLocalFallback: true };
+    } catch {
+      // Jika koneksi gagal, CORS, atau timeout, selamatkan gambar ke galeri lokal
+      this.saveGalleryImage({
+        id: localId,
+        name: fileName,
+        url: base64Data,
+        date: new Date().toISOString(),
+        source: 'local',
+      });
+      return { success: true, url: base64Data, fileId: localId, isLocalFallback: true };
     }
   },
 
-  // Ambil daftar file dari Google Drive
-  async getUploadedFiles(): Promise<Array<{ id: string; name: string; url: string }>> {
+  // Ambil daftar file dari Google Drive & Galeri Tersimpan
+  async getUploadedFiles(): Promise<Array<GalleryFileItem>> {
+    // 1. Dapatkan file lokal & gambar yang sudah ada terlebih dahulu
+    const localFiles = this.getGalleryImages();
     const sync = this.getSyncSettings();
-    if (!sync.webAppUrl) return [];
+
+    if (!sync.webAppUrl) {
+      return localFiles;
+    }
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000);
+
       const res = await fetch(
         `${sync.webAppUrl}?action=listFiles&token=${encodeURIComponent(sync.token)}`,
-        { method: 'GET', redirect: 'follow' }
+        { method: 'GET', redirect: 'follow', signal: controller.signal }
       );
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.files)) {
-          return json.files;
+          const remoteFiles: GalleryFileItem[] = json.files.map((f: any) => ({
+            id: f.id || 'drive_' + Math.random().toString(36).substring(2, 6),
+            name: f.name || 'Berkas Drive',
+            url: f.url || `https://lh3.googleusercontent.com/d/${f.id}`,
+            source: 'drive' as const,
+          }));
+
+          const seenUrls = new Set<string>();
+          const seenIds = new Set<string>();
+          const combined: GalleryFileItem[] = [];
+
+          for (const item of remoteFiles) {
+            seenUrls.add(item.url);
+            seenIds.add(item.id);
+            combined.push(item);
+          }
+
+          for (const item of localFiles) {
+            if (!seenUrls.has(item.url) && !seenIds.has(item.id)) {
+              seenUrls.add(item.url);
+              seenIds.add(item.id);
+              combined.push(item);
+            }
+          }
+
+          setStored(STORAGE_KEYS.GALLERY, combined.slice(0, 80));
+          return combined;
         }
       }
-      return [];
+      return localFiles;
     } catch {
-      return [];
+      return localFiles;
     }
   },
 

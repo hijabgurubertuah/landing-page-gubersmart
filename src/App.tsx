@@ -36,6 +36,7 @@ import { AdminCMS } from './components/admin/AdminCMS';
 import { AdminSync } from './components/admin/AdminSync';
 import { AdminFirebase } from './components/admin/AdminFirebase';
 import { AdminAccounts } from './components/admin/AdminAccounts';
+import { AdminAccountSecurity } from './components/admin/AdminAccountSecurity';
 
 export default function App() {
   // App-level data state
@@ -335,12 +336,6 @@ export default function App() {
               showToast={showToast}
             />
           )}
-          {currentAdminTab === 'sandi' && (
-            <AdminPassword
-              currentRole={currentRole}
-              showToast={showToast}
-            />
-          )}
           {currentAdminTab === 'cms' && (
             <AdminCMS
               currentRole={currentRole}
@@ -365,8 +360,9 @@ export default function App() {
           {currentAdminTab === 'firebase' && currentRole === 'superadmin' && (
             <AdminFirebase />
           )}
-          {currentAdminTab === 'akun' && currentRole === 'superadmin' && (
-            <AdminAccounts
+          {(currentAdminTab === 'akun' || currentAdminTab === 'sandi') && (
+            <AdminAccountSecurity
+              currentRole={currentRole}
               admins={admins}
               onSaveAdmins={handleSaveAdmins}
               showToast={showToast}

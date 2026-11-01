@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState, useEffect } from 'react';
-import { Menu, ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react';
+import { Menu, ArrowLeft, ChevronDown, ChevronRight, Eye, LogOut } from 'lucide-react';
 import { CMSSettings, UserRole } from '../../types';
 import { BrandLogo } from '../common/BrandLogo';
 
@@ -61,7 +61,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'fitur', label: 'Fitur', superOnly: true },
     { id: 'media', label: 'Media', superOnly: true },
     { id: 'footer', label: 'Footer dan Kontak', superOnly: false },
-    { id: 'pratinjau', label: 'Pratinjau', superOnly: false },
   ];
 
   const visibleCmsSubCategories = cmsSubCategories.filter(
@@ -74,15 +73,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
     { id: 'testimoni', label: 'Testimoni' },
     { id: 'karya', label: 'Karya' },
     { id: 'faq', label: 'FAQ' },
-    { id: 'sandi', label: 'Kata Sandi' },
     ...(isSuperadmin
       ? [
           { id: 'cms', label: 'CMS' },
           { id: 'sinkronisasi', label: 'Sinkronisasi' },
           { id: 'firebase', label: 'Firebase' },
-          { id: 'akun', label: 'Kelola Admin' },
         ]
       : []),
+    { id: 'akun', label: 'Akun & Keamanan' },
   ];
 
   const handleMobileSelect = (id: string) => {
@@ -91,12 +89,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   };
 
   const handleSubTabSelect = (subId: string, isMobile = false) => {
-    if (subId === 'pratinjau') {
-      if (isMobile) setIsMobileOpen(false);
-      onViewWebsite();
-      return;
-    }
-
     if (onSelectCmsSubTab) {
       onSelectCmsSubTab(subId);
     } else {
@@ -240,17 +232,31 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               </button>
             );
           })}
+        </nav>
+        <div className="p-4 border-t border-[#1b365f] space-y-2 bg-[#0b1c38]">
+          <button
+            type="button"
+            onClick={() => {
+              setIsMobileOpen(false);
+              onViewWebsite();
+            }}
+            className="w-full min-h-[46px] px-4 flex items-center gap-2.5 text-left text-sm font-medium rounded-xl text-[#e8cd8f] bg-[#12284a] hover:bg-[#18345e] border border-[#c9a35a]/30 transition"
+          >
+            <Eye className="w-4 h-4 text-[#c9a35a]" />
+            <span>Pratinjau</span>
+          </button>
           <button
             type="button"
             onClick={() => {
               setIsMobileOpen(false);
               onLogout();
             }}
-            className="w-full min-h-[48px] px-4 flex items-center text-left text-base font-medium rounded-xl text-red-400 hover:bg-[#12284a]/50 transition"
+            className="w-full min-h-[46px] px-4 flex items-center gap-2.5 text-left text-sm font-medium rounded-xl text-red-400 hover:bg-[#12284a]/50 transition"
           >
-            Keluar
+            <LogOut className="w-4 h-4" />
+            <span>Keluar</span>
           </button>
-        </nav>
+        </div>
       </aside>
 
       {/* Desktop Sidebar Tetap di Kiri */}
@@ -353,17 +359,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <button
             type="button"
             onClick={onViewWebsite}
-            className="w-full py-2.5 px-4 rounded-xl text-left text-sm font-medium text-gray-300 hover:text-white hover:bg-[#12284a]/50 transition flex items-center gap-2"
+            className="w-full py-2.5 px-4 rounded-xl text-left text-sm font-medium text-[#e8cd8f] bg-[#12284a] hover:bg-[#18345e] transition flex items-center gap-2.5 border border-[#c9a35a]/30"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Lihat Website</span>
+            <Eye className="w-4 h-4 text-[#c9a35a]" />
+            <span>Pratinjau</span>
           </button>
           <button
             type="button"
             onClick={onLogout}
-            className="w-full py-2.5 px-4 rounded-xl text-left text-sm font-medium text-red-400 hover:bg-[#12284a]/50 transition"
+            className="w-full py-2.5 px-4 rounded-xl text-left text-sm font-medium text-red-400 hover:bg-[#12284a]/50 transition flex items-center gap-2.5"
           >
-            Keluar
+            <LogOut className="w-4 h-4" />
+            <span>Keluar</span>
           </button>
         </div>
       </aside>

@@ -54,7 +54,6 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
     { id: 'fitur', label: 'Fitur', superOnly: true },
     { id: 'media', label: 'Media', superOnly: true },
     { id: 'footer', label: 'Footer dan Kontak', superOnly: false },
-    { id: 'pratinjau', label: 'Pratinjau', superOnly: false },
   ];
 
   const allowedTabs = allTabs.filter((t) => (isSuperadmin ? true : !t.superOnly));
@@ -65,34 +64,17 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
     showToast('Berhasil disimpan');
   };
 
+  const currentTabLabel = allowedTabs.find((t) => t.id === activeTab)?.label || 'Pengaturan';
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-serif font-bold text-[#1b2433]">Pengaturan CMS</h2>
-      </div>
-
-      {/* Tabs Menu */}
-      <div className="flex border-b border-[#e7e1d5] gap-2 overflow-x-auto no-scrollbar pb-1">
-        {allowedTabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => {
-              if (t.id === 'pratinjau') {
-                onPreview();
-              } else {
-                setActiveTab(t.id);
-              }
-            }}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap rounded-t-xl transition ${
-              activeTab === t.id
-                ? 'bg-white text-[#07142b] border-t-2 border-t-[#c9a35a] shadow-sm font-semibold'
-                : 'text-[#4b5565] hover:text-[#07142b]'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+        <div>
+          <h2 className="text-2xl font-serif font-bold text-[#1b2433]">Pengaturan CMS</h2>
+          <p className="text-sm font-semibold text-[#8c743e] mt-1">
+            {currentTabLabel}
+          </p>
+        </div>
       </div>
 
       {/* Tab Konten */}
@@ -772,8 +754,8 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
 
         {/* TAB 8: MEDIA */}
         {activeTab === 'media' && isSuperadmin && (
-          <div className="space-y-4">
-            <h3 className="font-serif font-bold text-lg text-[#1b2433]">Media</h3>
+          <div className="space-y-6">
+            <h3 className="font-serif font-bold text-lg text-[#1b2433]">Media & Galeri Drive</h3>
             <div>
               <label className="block text-sm font-medium text-[#1b2433] mb-1">
                 Tautan Video Pengantar (YouTube)
@@ -789,6 +771,22 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
                 }
                 placeholder="https://www.youtube.com/watch?v=..."
                 className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
+              />
+            </div>
+
+            <div className="pt-4 border-t border-[#e7e1d5] space-y-3">
+              <h4 className="font-semibold text-base text-[#1b2433]">Kelola Galeri Gambar</h4>
+              <p className="text-xs text-[#6b7280]">
+                Unggah gambar baru atau pilih gambar dari galeri untuk memastikan seluruh aset visual tersimpan dan siap digunakan di seluruh halaman.
+              </p>
+              <ImageUploader
+                label="Unggah atau Pilih Gambar Galeri"
+                value=""
+                onChange={(newUrl) => {
+                  if (newUrl) {
+                    showToast('Gambar tersimpan di Galeri Drive');
+                  }
+                }}
               />
             </div>
           </div>

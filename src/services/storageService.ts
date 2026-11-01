@@ -2,6 +2,8 @@
 
 import {
   ClassItem,
+  CurriculumMeeting,
+  ClassFAQ,
   TestimonialItem,
   KaryaItem,
   TipsItem,
@@ -94,13 +96,79 @@ function mergeCMS(pulled: any): CMSSettings {
   };
 }
 
+export function normalizeClassItem(c: any): ClassItem {
+  if (!c || typeof c !== 'object') {
+    return {
+      id: 'class_' + Date.now(),
+      slug: 'kelas-' + Date.now(),
+      name: '',
+      image: '',
+      shortDesc: '',
+      fullDesc: '',
+      normalPrice: 0,
+      currentPrice: 0,
+      status: 'active',
+      quota: '',
+      schedule: '',
+      lynkidUrl: '',
+      curriculum: [],
+      outcome: '',
+      targetAudience: '',
+      faqs: [],
+      clicksCount: 0,
+      order: 1,
+    };
+  }
+
+  let curriculum: CurriculumMeeting[] = [];
+  if (Array.isArray(c.curriculum)) {
+    curriculum = c.curriculum;
+  } else if (typeof c.curriculum === 'string' && c.curriculum.trim()) {
+    try {
+      const parsed = JSON.parse(c.curriculum);
+      if (Array.isArray(parsed)) {
+        curriculum = parsed;
+      }
+    } catch {
+      curriculum = [];
+    }
+  }
+
+  let faqs: ClassFAQ[] = [];
+  if (Array.isArray(c.faqs)) {
+    faqs = c.faqs;
+  } else if (typeof c.faqs === 'string' && c.faqs.trim()) {
+    try {
+      const parsed = JSON.parse(c.faqs);
+      if (Array.isArray(parsed)) {
+        faqs = parsed;
+      }
+    } catch {
+      faqs = [];
+    }
+  }
+
+  return {
+    ...c,
+    curriculum,
+    faqs,
+    normalPrice: Number(c.normalPrice) || 0,
+    currentPrice: Number(c.currentPrice) || 0,
+    clicksCount: Number(c.clicksCount) || 0,
+    order: Number(c.order) || 0,
+  };
+}
+
 export const StorageService = {
   // Classes
   getClasses(): ClassItem[] {
-    return getStored<ClassItem[]>(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
+    const raw = getStored<any[]>(STORAGE_KEYS.CLASSES, INITIAL_CLASSES);
+    if (!Array.isArray(raw)) return INITIAL_CLASSES.map(normalizeClassItem);
+    return raw.map(normalizeClassItem);
   },
   saveClasses(classes: ClassItem[]): void {
-    setStored(STORAGE_KEYS.CLASSES, classes);
+    const normalized = Array.isArray(classes) ? classes.map(normalizeClassItem) : [];
+    setStored(STORAGE_KEYS.CLASSES, normalized);
   },
   getClassBySlug(slug: string): ClassItem | undefined {
     return this.getClasses().find((c) => c.slug === slug);

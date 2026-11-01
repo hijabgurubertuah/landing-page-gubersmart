@@ -182,7 +182,7 @@ export const ClassDetailPage: React.FC<ClassDetailPageProps> = ({
         </div>
 
         {/* Materi Per Pertemuan (Akordeon) */}
-        {currentClass.curriculum && currentClass.curriculum.length > 0 && (
+        {Array.isArray(currentClass.curriculum) && currentClass.curriculum.length > 0 && (
           <div className="bg-white rounded-[18px] p-6 sm:p-10 shadow-md border border-[#e7e1d5] space-y-6">
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1b2433]">
               Materi Pembelajaran
@@ -232,7 +232,7 @@ export const ClassDetailPage: React.FC<ClassDetailPageProps> = ({
         )}
 
         {/* FAQ Kelas */}
-        {currentClass.faqs && currentClass.faqs.length > 0 && (
+        {Array.isArray(currentClass.faqs) && currentClass.faqs.length > 0 && (
           <div className="bg-white rounded-[18px] p-6 sm:p-10 shadow-md border border-[#e7e1d5] space-y-4">
             <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1b2433] mb-4">
               Pertanyaan Kelas

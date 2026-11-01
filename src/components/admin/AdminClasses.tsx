@@ -7,7 +7,7 @@ import { AutoTextarea } from '../common/AutoTextarea';
 import { ImageUploader } from '../common/ImageUploader';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 
-import { StorageService } from '../../services/storageService';
+import { StorageService, normalizeClassItem } from '../../services/storageService';
 
 interface AdminClassesProps {
   classes: ClassItem[];
@@ -20,7 +20,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
   onSaveClasses,
   showToast,
 }) => {
-  const [items, setItems] = useState<ClassItem[]>(classes);
+  const [items, setItems] = useState<ClassItem[]>(() => classes.map(normalizeClassItem));
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [editingItem, setEditingItem] = useState<ClassItem | null>(null);
@@ -215,7 +215,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    setEditingItem(c);
+                    setEditingItem(normalizeClassItem(c));
                     setIsCreating(false);
                   }}
                   className="p-2 text-[#07142b] hover:bg-[#f8f5ef] rounded-full transition"
@@ -452,91 +452,107 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
 
               {/* Kurikulum */}
               <div className="space-y-3 pt-2 border-t border-[#e7e1d5]">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-[#1b2433]">
-                    Materi Pertemuan
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const nextMeeting = (editingItem.curriculum?.length || 0) + 1;
-                      const updatedCurriculum = [
-                        ...(editingItem.curriculum || []),
-                        {
-                          meeting: nextMeeting,
-                          title: `Pertemuan ${nextMeeting}`,
-                          content: '',
-                        },
-                      ];
-                      setEditingItem({ ...editingItem, curriculum: updatedCurriculum });
-                      setHasChanges(true);
-                    }}
-                    className="text-xs text-[#a77d36] font-semibold hover:underline"
-                  >
-                    + Tambah Pertemuan
-                  </button>
-                </div>
+                {(() => {
+                  const curriculumList = Array.isArray(editingItem.curriculum)
+                    ? editingItem.curriculum
+                    : [];
 
-                <div className="space-y-2">
-                  {editingItem.curriculum?.map((curr, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 bg-[#f8f5ef] rounded-xl border border-[#e7e1d5] space-y-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-[#a77d36]">
-                          Pertemuan {curr.meeting}
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[#1b2433]">
+                          Materi Pertemuan
                         </span>
                         <button
                           type="button"
                           onClick={() => {
-                            const updatedCurriculum = editingItem.curriculum.filter(
-                              (_, i) => i !== idx
-                            );
-                            setEditingItem({
-                              ...editingItem,
-                              curriculum: updatedCurriculum,
-                            });
+                            const nextMeeting = curriculumList.length + 1;
+                            const updatedCurriculum = [
+                              ...curriculumList,
+                              {
+                                meeting: nextMeeting,
+                                title: `Pertemuan ${nextMeeting}`,
+                                content: '',
+                              },
+                            ];
+                            setEditingItem({ ...editingItem, curriculum: updatedCurriculum });
                             setHasChanges(true);
                           }}
-                          className="text-xs text-red-600 hover:underline"
+                          className="text-xs text-[#a77d36] font-semibold hover:underline"
                         >
-                          Hapus
+                          + Tambah Pertemuan
                         </button>
                       </div>
-                      <input
-                        type="text"
-                        value={curr.title}
-                        onChange={(e) => {
-                          const updatedCurriculum = [...editingItem.curriculum];
-                          updatedCurriculum[idx].title = e.target.value;
-                          setEditingItem({
-                            ...editingItem,
-                            curriculum: updatedCurriculum,
-                          });
-                          setHasChanges(true);
-                        }}
-                        placeholder="Judul Materi"
-                        className="w-full rounded-lg border border-[#e7e1d5] px-3 py-1.5 text-xs text-[#1b2433] bg-white focus:outline-none"
-                      />
-                      <AutoTextarea
-                        value={curr.content}
-                        onValueChange={(val) => {
-                          const updatedCurriculum = [...editingItem.curriculum];
-                          updatedCurriculum[idx].content = val;
-                          setEditingItem({
-                            ...editingItem,
-                            curriculum: updatedCurriculum,
-                          });
-                          setHasChanges(true);
-                        }}
-                        rows={1}
-                        placeholder="Ringkasan Materi"
-                        className="text-xs"
-                      />
-                    </div>
-                  ))}
-                </div>
+
+                      <div className="space-y-2">
+                        {curriculumList.map((curr, idx) => (
+                          <div
+                            key={idx}
+                            className="p-3 bg-[#f8f5ef] rounded-xl border border-[#e7e1d5] space-y-2"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-bold text-[#a77d36]">
+                                Pertemuan {curr.meeting}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedCurriculum = curriculumList.filter(
+                                    (_, i) => i !== idx
+                                  );
+                                  setEditingItem({
+                                    ...editingItem,
+                                    curriculum: updatedCurriculum,
+                                  });
+                                  setHasChanges(true);
+                                }}
+                                className="text-xs text-red-600 hover:underline"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              value={curr.title || ''}
+                              onChange={(e) => {
+                                const updatedCurriculum = [...curriculumList];
+                                updatedCurriculum[idx] = {
+                                  ...updatedCurriculum[idx],
+                                  title: e.target.value,
+                                };
+                                setEditingItem({
+                                  ...editingItem,
+                                  curriculum: updatedCurriculum,
+                                });
+                                setHasChanges(true);
+                              }}
+                              placeholder="Judul Materi"
+                              className="w-full rounded-lg border border-[#e7e1d5] px-3 py-1.5 text-xs text-[#1b2433] bg-white focus:outline-none"
+                            />
+                            <AutoTextarea
+                              value={curr.content || ''}
+                              onValueChange={(val) => {
+                                const updatedCurriculum = [...curriculumList];
+                                updatedCurriculum[idx] = {
+                                  ...updatedCurriculum[idx],
+                                  content: val,
+                                };
+                                setEditingItem({
+                                  ...editingItem,
+                                  curriculum: updatedCurriculum,
+                                });
+                                setHasChanges(true);
+                              }}
+                              rows={1}
+                              placeholder="Ringkasan Materi"
+                              className="text-xs"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Bilah Aksi Bawah */}

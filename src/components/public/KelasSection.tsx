@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ClassItem, CMSSettings } from '../../types';
 import { ImageSlot } from '../common/ImageSlot';
-import { StorageService } from '../../services/storageService';
+import { StorageService, formatUrl } from '../../services/storageService';
 
 interface KelasSectionProps {
   classes: ClassItem[];
@@ -78,7 +78,7 @@ export const KelasSection: React.FC<KelasSectionProps> = ({
   const handleRegisterClick = (c: ClassItem) => {
     StorageService.trackClassClick(c.id);
     const targetUrl = c.lynkidUrl || cms.buttons.heroPrimaryUrl || 'https://lynk.id';
-    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    window.open(formatUrl(targetUrl), '_blank', 'noopener,noreferrer');
   };
 
   const renderClassCard = (c: ClassItem) => (

@@ -6,7 +6,7 @@ import { ClassItem, CMSSettings, UserRole } from '../types';
 import { ImageSlot } from '../components/common/ImageSlot';
 import { Footer } from '../components/common/Footer';
 import { WhatsAppFloating } from '../components/common/WhatsAppFloating';
-import { StorageService } from '../services/storageService';
+import { StorageService, formatUrl } from '../services/storageService';
 
 interface ClassDetailPageProps {
   slug: string;
@@ -61,7 +61,7 @@ export const ClassDetailPage: React.FC<ClassDetailPageProps> = ({
     StorageService.trackClassClick(currentClass.id);
     const targetUrl =
       currentClass.lynkidUrl || cms.buttons.heroPrimaryUrl || 'https://lynk.id';
-    window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    window.open(formatUrl(targetUrl), '_blank', 'noopener,noreferrer');
   };
 
   const waPhone = cms.footer.waNumber.replace(/[^0-9]/g, '') || '6285376604024';

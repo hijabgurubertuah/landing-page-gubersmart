@@ -65,7 +65,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
     setIsCreating(true);
   };
 
-  const handleApplyForm = (e: React.FormEvent) => {
+  const handleApplyForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem || !editingItem.name.trim()) return;
 
@@ -78,7 +78,12 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
     setItems(updated);
     setEditingItem(null);
     setIsCreating(false);
-    setHasChanges(true);
+    setHasChanges(false);
+
+    onSaveClasses(updated);
+    StorageService.saveClasses(updated);
+    await StorageService.syncToAppsScript('Kelas', updated);
+    showToast('Berhasil disimpan & diperbarui');
   };
 
   const handleDelete = () => {
@@ -209,6 +214,15 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
               className="bg-white rounded-[18px] p-6 shadow-sm border border-[#e7e1d5] flex flex-col justify-between space-y-4"
             >
               <div className="space-y-3">
+                <div className="w-full aspect-[16/9] rounded-xl overflow-hidden bg-[#07142b] border border-[#e7e1d5] mb-2">
+                  {c.image ? (
+                    <img src={c.image} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#07142b] to-[#1b365f] flex items-center justify-center text-[#e8cd8f] text-xs font-serif p-2 text-center">
+                      {c.name || 'Kelas Guber Smart'}
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase text-[#a77d36]">
                     {c.status === 'active' ? 'Aktif' : 'Nonaktif'}
@@ -256,12 +270,12 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
       <div className="flex items-center justify-end pt-6 border-t border-[#e7e1d5]">
         <button
           type="button"
-          disabled={!hasChanges || isSaving}
+          disabled={isSaving}
           onClick={handleSaveAllToSheet}
           className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
-            hasChanges && !isSaving
-              ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+            isSaving
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+              : 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
           }`}
         >
           {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
@@ -340,14 +354,16 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   <input
                     type="number"
                     required
-                    value={editingItem.normalPrice}
+                    value={editingItem.normalPrice === 0 ? '' : editingItem.normalPrice}
                     onChange={(e) => {
+                      const val = e.target.value === '' ? 0 : Number(e.target.value);
                       setEditingItem({
                         ...editingItem,
-                        normalPrice: Number(e.target.value),
+                        normalPrice: val,
                       });
                       setHasChanges(true);
                     }}
+                    placeholder="Contoh: 299000"
                     className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
                   />
                 </div>
@@ -358,67 +374,39 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
                   <input
                     type="number"
                     required
-                    value={editingItem.currentPrice}
+                    value={editingItem.currentPrice === 0 ? '' : editingItem.currentPrice}
                     onChange={(e) => {
+                      const val = e.target.value === '' ? 0 : Number(e.target.value);
                       setEditingItem({
                         ...editingItem,
-                        currentPrice: Number(e.target.value),
+                        currentPrice: val,
                       });
                       setHasChanges(true);
                     }}
+                    placeholder="Contoh: 199000"
                     className="w-full rounded-xl border border-[#e7e1d5] px-4 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#1b2433] mb-1">
-                    Status *
-                  </label>
-                  <select
-                    value={editingItem.status}
-                    onChange={(e) => {
-                      setEditingItem({
-                        ...editingItem,
-                        status: e.target.value as 'active' | 'inactive',
-                      });
-                      setHasChanges(true);
-                    }}
-                    className="w-full rounded-xl border border-[#e7e1d5] px-3 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none bg-white"
-                  >
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Nonaktif</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#1b2433] mb-1">
-                    Keterangan Kuota
-                  </label>
-                  <input
-                    type="text"
-                    value={editingItem.quota}
-                    onChange={(e) => {
-                      setEditingItem({ ...editingItem, quota: e.target.value });
-                      setHasChanges(true);
-                    }}
-                    className="w-full rounded-xl border border-[#e7e1d5] px-3 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#1b2433] mb-1">
-                    Jadwal
-                  </label>
-                  <input
-                    type="text"
-                    value={editingItem.schedule}
-                    onChange={(e) => {
-                      setEditingItem({ ...editingItem, schedule: e.target.value });
-                      setHasChanges(true);
-                    }}
-                    className="w-full rounded-xl border border-[#e7e1d5] px-3 py-2 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-[#1b2433] mb-1">
+                  Status *
+                </label>
+                <select
+                  value={editingItem.status}
+                  onChange={(e) => {
+                    setEditingItem({
+                      ...editingItem,
+                      status: e.target.value as 'active' | 'inactive',
+                    });
+                    setHasChanges(true);
+                  }}
+                  className="w-full rounded-xl border border-[#e7e1d5] px-3 py-2.5 text-sm text-[#1b2433] focus:border-[#c9a35a] focus:outline-none bg-white"
+                >
+                  <option value="active">Aktif (Tampil di Publik)</option>
+                  <option value="inactive">Nonaktif (Disembunyikan)</option>
+                </select>
               </div>
 
               <div>

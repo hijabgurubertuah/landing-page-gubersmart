@@ -131,12 +131,12 @@ export const AdminFaq: React.FC<AdminFaqProps> = ({
       <div className="flex items-center justify-end pt-6 border-t border-[#e7e1d5]">
         <button
           type="button"
-          disabled={!hasChanges || isSaving}
+          disabled={isSaving}
           onClick={handleSaveAllToSheet}
           className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
-            hasChanges && !isSaving
-              ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+            isSaving
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+              : 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
           }`}
         >
           {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}

@@ -96,6 +96,15 @@ function mergeCMS(pulled: any): CMSSettings {
   };
 }
 
+export function formatUrl(url: string): string {
+  if (!url || !url.trim()) return 'https://lynk.id';
+  let trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return 'https://' + trimmed;
+}
+
 export function normalizeClassItem(c: any): ClassItem {
   if (!c || typeof c !== 'object') {
     return {
@@ -110,7 +119,7 @@ export function normalizeClassItem(c: any): ClassItem {
       status: 'active',
       quota: '',
       schedule: '',
-      lynkidUrl: '',
+      lynkidUrl: 'https://lynk.id',
       curriculum: [],
       outcome: '',
       targetAudience: '',
@@ -159,6 +168,7 @@ export function normalizeClassItem(c: any): ClassItem {
   return {
     ...c,
     status,
+    lynkidUrl: formatUrl(c.lynkidUrl),
     curriculum,
     faqs,
     normalPrice: Number(c.normalPrice) || 0,

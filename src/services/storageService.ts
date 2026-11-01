@@ -42,6 +42,21 @@ const STORAGE_KEYS = {
   GALLERY: 'guber_gallery_v1',
 };
 
+const SYNC_EVENT_NAME = 'guber_data_updated';
+
+function notifyLocalChange() {
+  try {
+    window.dispatchEvent(new Event(SYNC_EVENT_NAME));
+  } catch {}
+  try {
+    if ('BroadcastChannel' in window) {
+      const bc = new BroadcastChannel('guber_sync_channel');
+      bc.postMessage(SYNC_EVENT_NAME);
+      bc.close();
+    }
+  } catch {}
+}
+
 // Safe LocalStorage getter
 function getStored<T>(key: string, fallback: T): T {
   try {
@@ -55,6 +70,7 @@ function getStored<T>(key: string, fallback: T): T {
 function setStored<T>(key: string, value: T): void {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    notifyLocalChange();
   } catch {
     // Ignore storage quota errors in private mode
   }

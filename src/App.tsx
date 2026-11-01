@@ -100,18 +100,24 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Tarik data terbaru dari spreadsheet saat awal dibuka, saat tab aktif, dan berkala setiap 15 detik (real-time cross-device sync)
+  // Real-time synchronization effect:
+  // 1. Instant local sync across tabs/windows (BroadcastChannel & storage event)
+  // 2. Real-time cross-device sync from Google Sheets (every 5s, focus, & visibility)
   useEffect(() => {
+    const loadLocalState = () => {
+      setClasses(StorageService.getClasses());
+      setTestimonials(StorageService.getTestimonials());
+      setKaryaList(StorageService.getKarya());
+      setTips(StorageService.getTips());
+      setFaqs(StorageService.getFaqs());
+      setCms(StorageService.getCMS());
+      setAdmins(StorageService.getAdmins());
+    };
+
     const refreshData = () => {
       StorageService.pullFromAppsScript().then((pulled) => {
         if (pulled) {
-          setClasses(StorageService.getClasses());
-          setTestimonials(StorageService.getTestimonials());
-          setKaryaList(StorageService.getKarya());
-          setTips(StorageService.getTips());
-          setFaqs(StorageService.getFaqs());
-          setCms(StorageService.getCMS());
-          setAdmins(StorageService.getAdmins());
+          loadLocalState();
         }
       });
     };
@@ -124,14 +130,28 @@ export default function App() {
       }
     };
 
+    window.addEventListener('storage', loadLocalState);
+    window.addEventListener('guber_data_updated', loadLocalState);
     window.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('focus', refreshData);
-    const pollInterval = setInterval(refreshData, 15000);
+
+    let bc: BroadcastChannel | null = null;
+    if ('BroadcastChannel' in window) {
+      bc = new BroadcastChannel('guber_sync_channel');
+      bc.onmessage = () => {
+        loadLocalState();
+      };
+    }
+
+    const pollInterval = setInterval(refreshData, 5000);
 
     return () => {
       clearInterval(pollInterval);
+      window.removeEventListener('storage', loadLocalState);
+      window.removeEventListener('guber_data_updated', loadLocalState);
       window.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('focus', refreshData);
+      if (bc) bc.close();
     };
   }, []);
 

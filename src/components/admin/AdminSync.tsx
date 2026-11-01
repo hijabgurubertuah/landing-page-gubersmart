@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
-import { Copy, Check, RefreshCw } from 'lucide-react';
+import { Copy, Check, RefreshCw, Loader2 } from 'lucide-react';
 import { SyncSettings } from '../../types';
 import { StorageService } from '../../services/storageService';
 
@@ -332,6 +332,7 @@ export const AdminSync: React.FC<AdminSyncProps> = ({
   );
   const [isTesting, setIsTesting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(APPS_SCRIPT_CODE);
@@ -397,9 +398,15 @@ export const AdminSync: React.FC<AdminSyncProps> = ({
     }
   };
 
-  const handleSave = () => {
-    onSaveSync(draft);
-    showToast('Berhasil disimpan');
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      onSaveSync(draft);
+      showToast('Berhasil disimpan');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -548,15 +555,16 @@ export const AdminSync: React.FC<AdminSyncProps> = ({
         <div className="flex items-center justify-end pt-4 border-t border-[#e7e1d5]">
           <button
             type="button"
-            disabled={!hasChanges}
+            disabled={!hasChanges || isSaving}
             onClick={handleSave}
-            className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm ${
-              hasChanges
+            className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
+              hasChanges && !isSaving
                 ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
             }`}
           >
-            Simpan
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+            <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { UserRole } from '../../types';
 import { StorageService } from '../../services/storageService';
 
@@ -20,9 +21,11 @@ export const AdminPassword: React.FC<AdminPasswordProps> = ({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
     setErrorMsg('');
 
     // Check old password
@@ -42,14 +45,21 @@ export const AdminPassword: React.FC<AdminPasswordProps> = ({
       return;
     }
 
-    StorageService.updatePassword(targetRole, newPassword);
-    await StorageService.syncToAppsScript('Akun', [
-      { role: targetRole, password: newPassword },
-    ]);
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    showToast('Berhasil disimpan');
+    setIsSaving(true);
+    try {
+      StorageService.updatePassword(targetRole, newPassword);
+      await StorageService.syncToAppsScript('Akun', [
+        { role: targetRole, password: newPassword },
+      ]);
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      showToast('Berhasil disimpan');
+    } catch {
+      showToast('Gagal menyimpan kata sandi');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -129,9 +139,15 @@ export const AdminPassword: React.FC<AdminPasswordProps> = ({
         <div className="pt-2">
           <button
             type="submit"
-            className="w-full py-3 rounded-full gold-gradient-bg text-[#07142b] font-semibold text-sm hover:brightness-105 transition shadow-sm"
+            disabled={isSaving}
+            className={`w-full py-3 rounded-full font-semibold text-sm transition shadow-sm inline-flex items-center justify-center gap-2 ${
+              isSaving
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                : 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
+            }`}
           >
-            Simpan Kata Sandi
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+            <span>{isSaving ? 'Menyimpan...' : 'Simpan Kata Sandi'}</span>
           </button>
         </div>
       </form>

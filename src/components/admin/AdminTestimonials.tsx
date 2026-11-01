@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
-import { Plus, Trash2, Edit3 } from 'lucide-react';
+import { Plus, Trash2, Edit3, Loader2 } from 'lucide-react';
 import { TestimonialItem } from '../../types';
 import { AutoTextarea } from '../common/AutoTextarea';
 import { ConfirmDialog } from '../common/ConfirmDialog';
@@ -24,6 +24,7 @@ export const AdminTestimonials: React.FC<AdminTestimonialsProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleStartCreate = () => {
     setEditingItem({
@@ -70,10 +71,18 @@ export const AdminTestimonials: React.FC<AdminTestimonialsProps> = ({
   };
 
   const handleSaveAllToSheet = async () => {
-    onSaveTestimonials(items);
-    await StorageService.syncToAppsScript('Testimoni', items);
-    setHasChanges(false);
-    showToast('Berhasil disimpan');
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      onSaveTestimonials(items);
+      await StorageService.syncToAppsScript('Testimoni', items);
+      setHasChanges(false);
+      showToast('Berhasil disimpan');
+    } catch {
+      showToast('Gagal menyimpan testimoni');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -146,15 +155,16 @@ export const AdminTestimonials: React.FC<AdminTestimonialsProps> = ({
       <div className="flex items-center justify-end pt-6 border-t border-[#e7e1d5]">
         <button
           type="button"
-          disabled={!hasChanges}
+          disabled={!hasChanges || isSaving}
           onClick={handleSaveAllToSheet}
-          className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm ${
-            hasChanges
+          className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
+            hasChanges && !isSaving
               ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
           }`}
         >
-          Simpan
+          {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+          <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
         </button>
       </div>
 

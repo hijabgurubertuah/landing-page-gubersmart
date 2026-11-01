@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { AdminAccount } from '../../types';
 import { StorageService } from '../../services/storageService';
 
@@ -22,6 +22,7 @@ export const AdminAccounts: React.FC<AdminAccountsProps> = ({
   const [newRole, setNewRole] = useState<'admin' | 'superadmin'>('admin');
   const [newPassword, setNewPassword] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleToggleActive = (id: string) => {
     const updated = items.map((a) =>
@@ -57,10 +58,18 @@ export const AdminAccounts: React.FC<AdminAccountsProps> = ({
   };
 
   const handleSaveAllToSheet = async () => {
-    onSaveAdmins(items);
-    await StorageService.syncToAppsScript('Akun', items);
-    setHasChanges(false);
-    showToast('Berhasil disimpan');
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      onSaveAdmins(items);
+      await StorageService.syncToAppsScript('Akun', items);
+      setHasChanges(false);
+      showToast('Berhasil disimpan');
+    } catch {
+      showToast('Gagal menyimpan akun');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -114,15 +123,16 @@ export const AdminAccounts: React.FC<AdminAccountsProps> = ({
       <div className="flex items-center justify-end pt-6 border-t border-[#e7e1d5]">
         <button
           type="button"
-          disabled={!hasChanges}
+          disabled={!hasChanges || isSaving}
           onClick={handleSaveAllToSheet}
-          className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm ${
-            hasChanges
+          className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
+            hasChanges && !isSaving
               ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
           }`}
         >
-          Simpan
+          {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+          <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
         </button>
       </div>
 

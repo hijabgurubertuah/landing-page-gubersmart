@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
-import { Plus, Search, Trash2, Edit3, Download } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Download, Loader2 } from 'lucide-react';
 import { ClassItem, CurriculumMeeting, ClassFAQ } from '../../types';
 import { AutoTextarea } from '../common/AutoTextarea';
 import { ImageUploader } from '../common/ImageUploader';
@@ -27,6 +27,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const filteredItems = items.filter((item) => {
     const matchStatus = statusFilter === 'all' || item.status === statusFilter;
@@ -88,10 +89,18 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
   };
 
   const handleSaveAllToSheet = async () => {
-    onSaveClasses(items);
-    await StorageService.syncToAppsScript('Kelas', items);
-    setHasChanges(false);
-    showToast('Berhasil disimpan');
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      onSaveClasses(items);
+      await StorageService.syncToAppsScript('Kelas', items);
+      setHasChanges(false);
+      showToast('Berhasil disimpan');
+    } catch {
+      showToast('Gagal menyimpan kelas');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const exportCsv = () => {
@@ -232,15 +241,16 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({
       <div className="flex items-center justify-end pt-6 border-t border-[#e7e1d5]">
         <button
           type="button"
-          disabled={!hasChanges}
+          disabled={!hasChanges || isSaving}
           onClick={handleSaveAllToSheet}
-          className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm ${
-            hasChanges
+          className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
+            hasChanges && !isSaving
               ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
           }`}
         >
-          Simpan
+          {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+          <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
         </button>
       </div>
 

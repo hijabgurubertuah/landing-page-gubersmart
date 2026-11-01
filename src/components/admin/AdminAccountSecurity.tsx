@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
-import { Plus, Shield, KeyRound, UserCheck, UserX } from 'lucide-react';
+import { Plus, Shield, KeyRound, UserCheck, UserX, Loader2 } from 'lucide-react';
 import { AdminAccount, UserRole } from '../../types';
 import { StorageService } from '../../services/storageService';
 
@@ -28,6 +28,7 @@ export const AdminAccountSecurity: React.FC<AdminAccountSecurityProps> = ({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   // --- State Kelola Akun (Superadmin) ---
   const [items, setItems] = useState<AdminAccount[]>(admins);
@@ -36,10 +37,12 @@ export const AdminAccountSecurity: React.FC<AdminAccountSecurityProps> = ({
   const [newRole, setNewRole] = useState<'admin' | 'superadmin'>('admin');
   const [newAccountPassword, setNewAccountPassword] = useState('');
   const [hasAccountChanges, setHasAccountChanges] = useState(false);
+  const [isSavingAccounts, setIsSavingAccounts] = useState(false);
 
   // Handle Ubah Kata Sandi
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSavingPassword) return;
     setPasswordError('');
 
     const passwords = StorageService.getPasswords();
@@ -58,15 +61,22 @@ export const AdminAccountSecurity: React.FC<AdminAccountSecurityProps> = ({
       return;
     }
 
-    StorageService.updatePassword(targetRole, newPassword);
-    await StorageService.syncToAppsScript('Akun', [
-      { role: targetRole, password: newPassword },
-    ]);
+    setIsSavingPassword(true);
+    try {
+      StorageService.updatePassword(targetRole, newPassword);
+      await StorageService.syncToAppsScript('Akun', [
+        { role: targetRole, password: newPassword },
+      ]);
 
-    setOldPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    showToast('Kata sandi berhasil diperbarui');
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      showToast('Kata sandi berhasil diperbarui');
+    } catch {
+      showToast('Gagal memperbarui kata sandi');
+    } finally {
+      setIsSavingPassword(false);
+    }
   };
 
   // Handle Toggle Aktif Akun
@@ -114,10 +124,18 @@ export const AdminAccountSecurity: React.FC<AdminAccountSecurityProps> = ({
 
   // Simpan Semua Perubahan Akun ke Sheets
   const handleSaveAccounts = async () => {
-    onSaveAdmins(items);
-    await StorageService.syncToAppsScript('Akun', items);
-    setHasAccountChanges(false);
-    showToast('Berhasil disimpan ke Google Sheets');
+    if (isSavingAccounts) return;
+    setIsSavingAccounts(true);
+    try {
+      onSaveAdmins(items);
+      await StorageService.syncToAppsScript('Akun', items);
+      setHasAccountChanges(false);
+      showToast('Berhasil disimpan ke Google Sheets');
+    } catch {
+      showToast('Gagal menyimpan akun');
+    } finally {
+      setIsSavingAccounts(false);
+    }
   };
 
   return (
@@ -200,9 +218,15 @@ export const AdminAccountSecurity: React.FC<AdminAccountSecurityProps> = ({
           <div className="pt-2">
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-full text-sm font-semibold gold-gradient-bg text-[#07142b] hover:brightness-105 transition shadow-sm active:scale-95"
+              disabled={isSavingPassword}
+              className={`px-6 py-2.5 rounded-full text-sm font-semibold inline-flex items-center gap-2 transition shadow-sm ${
+                isSavingPassword
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                  : 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
+              }`}
             >
-              Perbarui Kata Sandi
+              {isSavingPassword && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+              <span>{isSavingPassword ? 'Menyimpan...' : 'Perbarui Kata Sandi'}</span>
             </button>
           </div>
         </form>
@@ -230,10 +254,16 @@ export const AdminAccountSecurity: React.FC<AdminAccountSecurityProps> = ({
               {hasAccountChanges && (
                 <button
                   type="button"
+                  disabled={isSavingAccounts}
                   onClick={handleSaveAccounts}
-                  className="px-5 py-2 rounded-full text-sm font-semibold bg-[#07142b] text-white hover:bg-[#12284a] transition shadow-sm active:scale-95"
+                  className={`px-5 py-2 rounded-full text-sm font-semibold inline-flex items-center gap-2 transition shadow-sm ${
+                    isSavingAccounts
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
+                      : 'bg-[#07142b] text-white hover:bg-[#12284a] active:scale-95'
+                  }`}
                 >
-                  Simpan Perubahan
+                  {isSavingAccounts && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+                  <span>{isSavingAccounts ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
                 </button>
               )}
             </div>

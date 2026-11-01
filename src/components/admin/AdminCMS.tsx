@@ -1,7 +1,7 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
 import React, { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { CMSSettings, UserRole } from '../../types';
 import { AutoTextarea } from '../common/AutoTextarea';
 import { ImageUploader } from '../common/ImageUploader';
@@ -28,6 +28,7 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
 }) => {
   // Local draft state
   const [draft, setDraft] = useState<CMSSettings>(JSON.parse(JSON.stringify(cms)));
+  const [isSaving, setIsSaving] = useState(false);
   const [internalActiveTab, setInternalActiveTab] = useState<string>(
     propActiveTab || (currentRole === 'superadmin' ? 'identitas' : 'bagian')
   );
@@ -59,9 +60,17 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
   const allowedTabs = allTabs.filter((t) => (isSuperadmin ? true : !t.superOnly));
 
   const handleSaveTab = async () => {
-    onSaveCMS(draft);
-    await StorageService.syncToAppsScript('Pengaturan', draft);
-    showToast('Berhasil disimpan');
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      onSaveCMS(draft);
+      await StorageService.syncToAppsScript('Pengaturan', draft);
+      showToast('Berhasil disimpan');
+    } catch {
+      showToast('Gagal menyimpan pengaturan');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const currentTabLabel = allowedTabs.find((t) => t.id === activeTab)?.label || 'Pengaturan';
@@ -960,15 +969,16 @@ export const AdminCMS: React.FC<AdminCMSProps> = ({
         <div className="flex items-center justify-end pt-4 border-t border-[#e7e1d5]">
           <button
             type="button"
-            disabled={!hasChanges}
+            disabled={!hasChanges || isSaving}
             onClick={handleSaveTab}
-            className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm ${
-              hasChanges
+            className={`px-7 py-3 rounded-full text-sm font-semibold transition shadow-sm inline-flex items-center gap-2 ${
+              hasChanges && !isSaving
                 ? 'gold-gradient-bg text-[#07142b] hover:brightness-105 active:scale-95'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed pointer-events-none'
             }`}
           >
-            Simpan
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin text-[#07142b]" />}
+            <span>{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
           </button>
         </div>
       </div>

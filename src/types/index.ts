@@ -13,6 +13,14 @@ export interface ClassFAQ {
   a: string;
 }
 
+export type ClassSyncStatus =
+  | 'Tersinkron'
+  | 'Menyinkronkan'
+  | 'Belum tersinkron'
+  | 'Offline'
+  | 'Belum aktif'
+  | 'Kode Lama';
+
 export interface ClassItem {
   id: string;
   slug: string;
@@ -23,15 +31,18 @@ export interface ClassItem {
   normalPrice: number;
   currentPrice: number;
   status: 'active' | 'inactive';
-  quota: string;
-  schedule: string;
   lynkidUrl: string;
   curriculum: CurriculumMeeting[];
-  outcome: string;
-  targetAudience: string;
   faqs: ClassFAQ[];
   clicksCount: number;
   order: number;
+  quota?: string;
+  schedule?: string;
+  outcome?: string;
+  targetAudience?: string;
+  dibuat?: number;
+  diubah?: number;
+  dihapus?: boolean;
 }
 
 export interface TestimonialItem {

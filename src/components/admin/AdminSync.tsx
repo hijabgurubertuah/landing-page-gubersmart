@@ -192,12 +192,65 @@ function doGet(e) {
           }
         }
       });
-      return jsonResponse({ success: true, data: result });
+      return jsonResponse({ success: true, data: result, rev: getKelasRev() });
     } catch (err) {
       return jsonResponse({ success: false, error: err.toString() });
     }
   }
+
+  // Aksi Kelas Ringan (Publik)
+  if (action === "kelas.versi") {
+    return jsonResponse({
+      success: true,
+      rev: getKelasRev(),
+      capabilities: ["kelas.v1"]
+    });
+  }
+
+  if (action === "kelas.tarik") {
+    try {
+      const ss = getOrCreateSpreadsheet();
+      const sheet = ss.getSheetByName("Kelas");
+      if (!sheet) {
+        return jsonResponse({ success: true, data: [], rev: getKelasRev() });
+      }
+      const values = sheet.getDataRange().getValues();
+      if (values.length <= 1) {
+        return jsonResponse({ success: true, data: [], rev: getKelasRev() });
+      }
+      const headers = values[0];
+      const records = values.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((h, i) => {
+          const cell = row[i];
+          if (typeof cell === "string" && (cell.startsWith("{") || cell.startsWith("["))) {
+            try { obj[h] = JSON.parse(cell); } catch (e) { obj[h] = cell; }
+          } else {
+            obj[h] = cell;
+          }
+        });
+        return obj;
+      });
+      return jsonResponse({ success: true, data: records, rev: getKelasRev() });
+    } catch (err) {
+      return jsonResponse({ success: false, error: err.toString() });
+    }
+  }
+
   return jsonResponse({ status: "ok" });
+}
+
+function getKelasRev() {
+  const props = PropertiesService.getScriptProperties();
+  const rev = props.getProperty("KELAS_REV");
+  return rev ? parseInt(rev, 10) : 1;
+}
+
+function bumpKelasRev() {
+  const props = PropertiesService.getScriptProperties();
+  const rev = getKelasRev() + 1;
+  props.setProperty("KELAS_REV", rev.toString());
+  return rev;
 }
 
 function doPost(e) {
@@ -205,8 +258,8 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
 
-    // Verifikasi Token
-    if (action !== "trackClick" && action !== "ping" && data.token !== CONFIG.TOKEN) {
+    // Verifikasi Token untuk Aksi Terproteksi
+    if (action !== "trackClick" && action !== "kelas.klik" && action !== "ping" && data.token !== CONFIG.TOKEN) {
       return jsonResponse({ success: false, error: "Akses ditolak" });
     }
 
@@ -217,8 +270,73 @@ function doPost(e) {
         status: "ok",
         message: "Terhubung",
         spreadsheetId: ss.getId(),
-        driveFolderId: folder.getId()
+        driveFolderId: folder.getId(),
+        capabilities: ["kelas.v1"]
       });
+    }
+
+    if (action === "kelas.klik") {
+      const lock = LockService.getScriptLock();
+      try {
+        lock.waitLock(5000);
+        const ss = getOrCreateSpreadsheet();
+        let sheet = ss.getSheetByName("Kelas");
+        if (sheet && data.classId) {
+          const values = sheet.getDataRange().getValues();
+          if (values.length > 1) {
+            const headers = values[0];
+            const idCol = headers.indexOf("id");
+            const clickCol = headers.indexOf("clicksCount") !== -1 ? headers.indexOf("clicksCount") : headers.indexOf("klik");
+
+            if (idCol !== -1 && clickCol !== -1) {
+              for (let i = 1; i < values.length; i++) {
+                if (String(values[i][idCol]) === String(data.classId) || String(values[i][headers.indexOf("slug")]) === String(data.classId)) {
+                  const currentClicks = parseInt(values[i][clickCol] || 0, 10);
+                  sheet.getRange(i + 1, clickCol + 1).setValue(currentClicks + 1);
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+      } finally {
+        lock.releaseLock();
+      }
+      return jsonResponse({ success: true });
+    }
+
+    if (action === "kelas.simpan" || (action === "syncData" && data.collection === "Kelas")) {
+      const lock = LockService.getScriptLock();
+      try {
+        lock.waitLock(10000);
+        const ss = getOrCreateSpreadsheet();
+        let sheet = ss.getSheetByName("Kelas");
+        if (!sheet) sheet = ss.insertSheet("Kelas");
+
+        const records = data.records || [];
+        sheet.clearContents();
+
+        if (records && records.length > 0) {
+          const headers = Object.keys(records[0]);
+          sheet.appendRow(headers);
+          const rows = records.map(r => headers.map(h => {
+            const val = r[h];
+            if (typeof val === "object" && val !== null) {
+              return JSON.stringify(val);
+            }
+            return val === undefined || val === null ? "" : val;
+          }));
+          sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+        }
+
+        const newRev = bumpKelasRev();
+        return jsonResponse({ success: true, count: records ? records.length : 0, rev: newRev });
+      } catch (err) {
+        return jsonResponse({ success: false, error: err.toString() });
+      } finally {
+        lock.releaseLock();
+      }
     }
 
     if (action === "verifyLogin") {

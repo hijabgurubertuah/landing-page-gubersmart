@@ -1,0 +1,284 @@
+Berkas ini berisi perintah lengkap untuk MEREVISI aplikasi web yang sudah ada. Baca seluruh isinya dan jalankan semuanya secara berurutan dari atas ke bawah tanpa melewatkan satu bagian pun. Bagian "Sinkronisasi ke Google Sheets (LANGKAH TERAKHIR)" dikerjakan PALING AKHIR, setelah semua bagian lain selesai dan lolos pengujian.
+
+Revisi ini membangun ulang sistem Pengaturan dan Pengelolaan Kelas yang terintegrasi penuh antara Panel Admin dan Tampilan Website Publik, dengan tiga hasil yang wajib tercapai: (1) semua pengaturan kelas benar-benar berfungsi, dari tambah, ubah, dan hapus sampai tampil di website publik; (2) setiap perubahan terlihat real-time di tab lain dan di perangkat lain; (3) tombol simpan bereaksi langsung pada SATU kali ketukan dengan indikator loading.
+
+PENTING: tampilan aplikasi harus bersih dan profesional seperti produk jadi, sempurna dan responsif di layar HP (menu, tombol, dan semua elemen rapi, proporsional, tidak ada yang tersembunyi), tanpa satu pun teks petunjuk, penjelasan fungsi, atau keterangan teknis (termasuk soal unggah file, Drive, Apps Script, atau spreadsheet). Hanya label, konten, pesan galat, dan notifikasi hasil aksi yang boleh tampil. Tombol, menu, dan kolom harus mudah dipakai dan dipahami lewat label yang jelas saja.
+
+## 0. Cara Mengerjakan Revisi
+- Baca dulu berkas aturan desain permanen (designSystem) di proyek dan patuhi. Bila belum ada, buat sesuai bagian "Aturan Desain Permanen (kunci di kode)" di bawah.
+- Ubah hanya modul yang berkaitan dengan Kelas (daftar modul ada di bagian Ringkasan Struktur Aplikasi). Beranda di luar bagian Kelas, CMS, tab admin lain, login, tema, menu, dan footer tetap seperti semula. Bila navigasi sudah punya item "Kelas", hubungkan ke bagian Kelas di beranda; jangan menambah atau mengubah item menu lain.
+- Bila sudah ada kode Kelas lama (tab admin, bagian beranda, halaman detail, penyimpanan, pengiriman data, atau polling) yang bertabrakan dengan spesifikasi ini, GANTI dengan versi baru. Jangan membuat dua versi berdampingan, dan hapus kode lama yang tidak terpakai.
+- Perbaiki penyebabnya, bukan gejalanya. Pastikan penyebab kegagalan berikut benar-benar hilang:
+  1. Tombol simpan baru bereaksi setelah beberapa kali ketukan, karena ketukan pertama hilang (tata letak bergeser saat kolom kehilangan fokus, tombol dibuat ulang atau dinonaktifkan saat status berubah, atau status loading baru dinyalakan setelah proses selesai).
+  2. Perubahan hanya tersimpan di penyimpanan lokal satu perangkat, atau terkirim ke Apps Script tanpa membaca responsnya (mode no-cors) sehingga gagal secara diam-diam.
+  3. Satu kelas lengkap (kurikulum, FAQ, gambar) ditulis sebagai teks yang sangat panjang atau memuat gambar base64, sehingga melewati batas 50.000 karakter per sel Google Sheets dan seluruh simpanan ditolak.
+  4. Hasil tarikan data menimpa perubahan yang belum disimpan, atau menghidupkan kembali kelas yang sudah dihapus di perangkat lain.
+  5. Data kurikulum atau FAQ yang kosong, null, berupa teks JSON, atau salah format memicu TypeError dan layar kosong.
+  6. Tab dan perangkat lain tidak pernah diberi tahu bahwa data berubah.
+  7. Kode Apps Script yang terpasang belum mengenal data Kelas.
+
+## 1. Tujuan dan Pengguna
+Admin mengelola kelas (nama, gambar sampul, harga normal dan promo, status, tautan pendaftaran, deskripsi, kurikulum, FAQ) dari Panel Admin. Pengunjung website publik melihat kelas yang aktif di beranda, membuka halaman detail, lalu mendaftar lewat tautan Lynk.id atau WhatsApp. Perubahan yang disimpan admin harus langsung terlihat oleh pengunjung di perangkat mana pun.
+
+## 2. Bahasa dan Nada
+Bahasa tampilan: Indonesia, ramah dan ringkas. Label tombol dan kolom singkat (1-3 kata).
+
+## 3. Tampilan dan Desain
+- Pakai warna, jenis huruf, dan gaya komponen yang sudah ada di aplikasi (dibaca dari pengaturan tema). Jangan menulis warna mati untuk elemen lain.
+- Khusus tombol "Simpan & Sinkronkan": emas keemasan, gradasi dari #F2C94C ke #D4A017, teks #2B1D00 tebal, sudut membulat sama seperti tombol lain; saat ditekan atau memuat, gradasi sedikit lebih gelap (#D4A017 ke #B8860B). Warna ini didefinisikan sekali sebagai konstanta di designSystem.
+- Harga normal dicoret dengan warna netral redup; harga sekarang tebal, lebih besar, berwarna aksen aplikasi agar mencolok.
+- Gambar sampul berrasio 16:9, mengisi penuh tanpa terdistorsi, sudut membulat.
+- Perangkat utama: HP (layar 360-430px), lalu tablet dan desktop.
+
+Aturan tampilan di bawah ini WAJIB dipatuhi di seluruh bagian Kelas, baik di panel admin maupun di website publik.
+
+## Aturan Tampilan Profesional dan Responsif (WAJIB DIPATUHI, TANPA PENGECUALIAN)
+
+Tampilan harus seperti produk jadi yang rapi dan profesional, bukan prototipe.
+
+LARANGAN MUTLAK: TIDAK ADA SATU PUN teks petunjuk, penjelasan, atau keterangan fungsi di antarmuka. Ini berlaku untuk semua halaman, formulir, dialog, dan dashboard admin.
+
+Contoh yang DILARANG tampil di UI (dan semua kalimat serupa):
+- "Gunakan tombol ini untuk mengunggah gambar."
+- "Gambar akan disimpan ke Drive melalui Apps Script." atau penyebutan Drive, Apps Script, base64, atau cara kerja teknis apa pun.
+- "Format yang didukung: JPG, PNG. Maksimal 5 MB." (batas hanya diperiksa di kode; pesan muncul HANYA bila pengguna melanggar)
+- "Isi kolom di bawah ini...", "Klik di sini untuk...", "Fitur ini digunakan untuk...", "Catatan:", "Tips:", "Perhatian:"
+- Teks kecil abu-abu di bawah tombol, kolom, judul, atau kartu yang menjelaskan fungsinya.
+- Tooltip, balon petunjuk, tur, onboarding, banner "Cara menggunakan", badge "Baru" atau "Demo", kata simulasi/demo/mock, dan komentar pengembang.
+- Paragraf pengantar di atas formulir atau tabel.
+
+HANYA teks berikut yang boleh tampil:
+1. Konten asli aplikasi (isi berita, nama produk, data).
+2. Judul halaman dan judul bagian (satu frasa singkat).
+3. Label tombol dan menu (kata kerja singkat, 1-3 kata).
+4. Label kolom isian (satu frasa singkat, tetap tampil di atas kolom, tanda * untuk yang wajib).
+5. Pesan kesalahan validasi, hanya saat terjadi kesalahan.
+6. Notifikasi singkat hasil aksi (misalnya "Berhasil disimpan", "Gagal mengunggah") dan lencana status koneksi singkat ("Offline") saat tidak ada internet.
+7. Judul singkat keadaan kosong (misalnya "Belum ada data"), tanpa kalimat penjelasan.
+Placeholder kolom dikosongkan, atau berisi contoh isi murni (misalnya nama orang), tidak pernah berupa kalimat instruksi.
+
+MUDAH DIGUNAKAN DAN DIPAHAMI TANPA PENJELASAN:
+- Tombol berlabel kata kerja singkat yang langsung jelas (Simpan, Tambah Siswa, Unduh Laporan, Cari, Pilih Gambar). Ikon selain yang sangat umum (tutup, cari, edit, hapus, menu) selalu disertai label teks. Ikon umum diberi aria-label tersembunyi, bukan tulisan tampil.
+- Gunakan pola antarmuka yang sudah dikenal: kolom unggah berupa satu tombol "Pilih Gambar" atau "Pilih Dokumen" (kolom gambar yang memakai Drive juga punya tab "Galeri" berisi grid miniatur gambar yang sudah pernah diunggah, ketuk untuk memilih); setelah file dipilih tampilkan pratinjau (gambar kecil atau ikon file dengan nama file) dan ikon hapus; saat mengunggah tampilkan indikator putar pada tombol, tanpa tulisan penjelasan.
+- Satu aksi utama per layar: tombol utama berwarna aksen dan menonjol, aksi sekunder berbentuk garis tepi, aksi berbahaya berwarna merah dan meminta konfirmasi lewat dialog singkat (judul dan dua tombol saja).
+- Posisi konsisten di seluruh aplikasi: tombol Tambah di kanan atas daftar; Simpan dan Batal di kanan bawah formulir yang menyimpan langsung (formulir publik, transaksi, absensi); pada dialog atau formulir tambah/ubah di dalam tab pengaturan atau pengelolaan konten, tombol aksinya "Terapkan" dan "Batal" (Terapkan memasukkan perubahan ke draf tab), sedangkan tombol "Simpan" hanya satu di bagian bawah tab; pencarian dan filter di atas tabel; menu selalu di tempat yang sama.
+- SEMUA kolom edit atau input teks (kolom teks panjang, deskripsi, editor teks, dan sejenisnya) otomatis membesar ke bawah mengikuti isi yang diketik, tanpa bilah gulir internal dan tanpa perlu ditarik manual; tinggi awal ringkas (satu atau dua baris) dan tidak terbatas ke bawah. Berlaku di semua formulir, CMS, panel admin, HP, dan desktop.
+- Formulir dikelompokkan dalam bagian berjudul singkat, urutan kolom mengikuti urutan pikiran pengguna, kolom pilihan memakai dropdown atau pilihan bertombol dengan label jelas.
+- Menu dikelompokkan logis, memakai ikon dan label, item aktif disorot jelas.
+- Hierarki visual jelas: ukuran huruf konsisten untuk judul halaman, judul bagian, dan isi; kontras warna cukup; tabel dengan judul kolom jelas.
+
+MENU, DROPDOWN, DAN PANEL MELAYANG (dropdown pilihan, menu hamburger, menu aksi baris tabel, menu profil, pemilih tanggal, notifikasi, popover):
+- Selalu tampil penuh di dalam layar, termasuk di ponsel kecil: tidak terpotong, tidak tersembunyi di balik elemen lain, tidak membuat halaman bergeser ke samping. Menu tampil di lapisan paling atas sehingga tidak terpotong oleh kartu, kontainer, atau tabel yang bisa digulir.
+- Posisi menyesuaikan ruang: bila tidak muat di bawah, tampil ke atas; bila tidak muat di kanan, geser ke kiri. Lebar maksimum = lebar layar dikurangi 16px; tinggi maksimum = tinggi layar dikurangi 32px dengan gulir di dalam menu. Di ponsel, menu panjang atau pemilih tampil sebagai panel dari bawah (bottom sheet).
+- Menutup otomatis saat pengguna mengetuk atau mengklik di luar area menu, menekan Escape, memilih satu item, berpindah halaman, atau membuka menu lain. Hanya satu menu terbuka pada satu waktu.
+- Area sentuh tiap item minimal 44px; item aktif jelas; navigasi keyboard (panah, Enter) berfungsi di desktop.
+- Dialog (modal) juga responsif: lebar maksimum layar dikurangi 32px, isi bisa digulir, tombol aksi selalu terlihat, dan menutup bila lapisan gelap di luarnya diketuk (kecuali formulir yang sedang diisi, yang meminta konfirmasi singkat).
+
+KERAPIAN VISUAL: spasi lega, grid konsisten, tidak penuh sesak, tidak ada elemen dekoratif tanpa fungsi, ikon seragam dalam satu keluarga, bayangan dan sudut membulat konsisten.
+
+TAMPILAN HP ADALAH PRIORITAS UTAMA. Sebagian besar pengguna memakai HP, jadi semua menu, tombol, formulir, tabel, dialog, dan panel admin harus rapi, proporsional, mudah dipahami, dan mudah dioperasikan dengan satu jari di layar 360-430px. Desktop tetap rapi sebagai tampilan kedua. Tidak boleh ada tombol atau menu yang tersembunyi, berantakan, terpotong, tumpang tindih, atau tidak proporsional.
+
+MENU HAMBURGER DI HP (wajib persis seperti ini):
+- Tombol hamburger di pojok kanan atas header, area sentuh minimal 44px, berubah menjadi ikon tutup saat menu terbuka.
+- Saat dibuka, menu tampil sebagai panel laci dari sisi (lebar sekitar 85% layar) atau panel layar penuh, dengan lapisan gelap di belakangnya. SELURUH isi menu terlihat penuh di dalam layar, tidak terpotong dan tidak keluar layar.
+- Item tersusun vertikal satu kolom, rapi dan rata kiri, tinggi tiap item minimal 48px, huruf minimal 16px, jarak seragam, ikon dan label sejajar, item aktif disorot.
+- Submenu berupa akordeon di dalam panel (ketuk untuk buka/tutup), bukan dropdown melayang.
+- Jika isi menu lebih tinggi dari layar, panel bisa digulir sendiri sementara halaman di belakangnya terkunci.
+- Tombol aksi utama (misalnya Daftar atau Login) ditaruh di bagian bawah panel dan selalu terlihat.
+- Menutup otomatis saat mengetuk di luar panel, mengetuk ikon tutup, memilih item, atau berpindah halaman.
+- Header menempel di atas dengan tinggi proporsional (sekitar 56-64px) dan di HP HANYA berisi logo atau nama singkat serta ikon hamburger; tidak ada tombol tambahan (termasuk tombol login) di header. Logo dan nama singkat tidak pernah bertabrakan dengan tombol hamburger.
+- Item "Masuk" (login) adalah satu item biasa di daftar menu, item terakhir, bergaya sama dengan item lain, dan tidak boleh menggeser, menyembunyikan, atau memperkecil item menu lain. Di desktop, bila deretan menu terlalu penuh, beralih ke menu hamburger pada lebar yang lebih besar daripada membiarkan menu bertumpuk atau terpotong.
+
+STANDAR TAMPILAN HP LAINNYA:
+- Tidak ada elemen yang lebih lebar dari layar dan tidak ada gulir ke samping.
+- Semua tombol dan tautan minimal 44px dengan jarak cukup, tidak berhimpitan.
+- Huruf isi minimal 16px; judul proporsional (tidak memenuhi layar); kolom isian setinggi minimal 48px dengan huruf 16px.
+- Satu kolom; kartu penuh lebar dengan jarak samping sekitar 16px; tabel menjadi kartu bertumpuk.
+- Formulir panjang memiliki bilah aksi di bawah layar (Simpan atau Terapkan, dan Batal, sesuai aturan tombol di atas) yang selalu terlihat; tombol aksi penuh lebar.
+- Gambar dan video berukuran proporsional dengan rasio tetap dan tidak terpotong aneh; peta dan video profil penuh lebar.
+- Banner utama tidak lebih tinggi dari satu layar dan teks di atasnya terbaca jelas.
+- Dialog tampil sebagai panel dari bawah atau hampir penuh layar dengan tombol tutup yang jelas; tombol aksi dialog selalu terlihat.
+- Menghormati area aman layar (lekukan kamera dan bilah gestur) sehingga tombol tidak tertutup.
+- Panel admin di HP memakai pola menu laci yang sama; tabel data menjadi daftar kartu dengan menu aksi ringkas; grafik menyesuaikan lebar layar.
+- Interaksi sentuh mulus: gulir halus tanpa tersendat, gestur geser (galeri, carousel, laci menu) mengikuti jari dan berhenti rapi, tidak ada gulir ganda atau halaman terkunci, tidak ada lonjakan tampilan saat memuat.
+- Sebelum dianggap selesai, periksa setiap halaman di lebar 360px, 390px, dan 430px: tidak ada tombol tersembunyi, teks terpotong, tumpang tindih, atau elemen tidak proporsional.
+
+TABLET DAN DESKTOP: tablet (768-1024px) dua kolom bila sesuai; desktop (di atas 1024px) navigasi atas atau sidebar untuk dashboard admin, grid beberapa kolom, lebar konten dibatasi agar nyaman dibaca, tabel penuh.
+
+Seluruh penjelasan teknis (Drive, Apps Script, spreadsheet, base64, batas ukuran, tipe file) hanya berada di kode dan komentar kode, TIDAK PERNAH di tampilan. Aturan ini berlaku sama untuk dashboard admin, panel CMS, dan tab Sinkronisasi (tab ini hanya boleh berisi kotak kode, label, kolom, tombol, dan status).
+
+## Aturan Desain Permanen (kunci di kode)
+Buat satu berkas aturan desain permanen di dalam proyek (misalnya di folder konstanta dengan nama designSystem) yang memuat aturan tampilan di bawah ini sebagai komentar dan konstanta. Di baris paling atas setiap komponen utama (halaman publik, panel admin, CMS, formulir, dan komponen bersama) tambahkan penanda: "// ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk." Setiap revisi atau penambahan fitur pada proyek ini WAJIB membaca dan mematuhi berkas itu lebih dulu, tanpa perlu diingatkan pengguna di setiap chat.
+
+Isi aturan:
+- Prinsip: minimalis, bersih, ringkas, dan jelas, tampil seperti produk jadi yang profesional.
+- Tanpa teks panjang: dilarang paragraf instruksi, tips, teks bantuan, atau penjelasan fungsi di seluruh tampilan, formulir, dan pengaturan CMS, termasuk penjelasan teknis (Drive, Apps Script, spreadsheet, format dan batas file).
+- Teks hanya label singkat 1-3 kata. Placeholder dikosongkan atau berisi contoh isi murni, bukan instruksi.
+- Tombol aksi (Simpan, Hapus, Kosongkan) tegas, langsung, dan fungsional, dengan label kata kerja singkat.
+- Penyimpanan: bila ada sinkronisasi ke spreadsheet, SETIAP tab pengaturan dan pengelolaan konten di panel admin dan CMS punya tepat satu tombol "Simpan" di bagian bawah tab (aktif hanya bila ada perubahan draf); dialog atau formulir tambah/ubah di dalam tab memakai "Terapkan"; tidak ada simpan otomatis; notifikasi "Berhasil disimpan" hilang sendiri dengan cepat.
+- Setiap kolom gambar yang memakai Drive punya tiga tab pendek "Unggah", "Tautan", dan "Galeri"; hanya ID atau tautan yang tersimpan sebagai teks, tidak pernah base64.
+- Setiap kolom gambar selalu punya tombol "Hapus Gambar" berikon tempat sampah di samping pratinjau; logo, banner, dan gambar popup juga bisa dihapus satu per satu (dan "Hapus Semua" untuk banner bila ada banyak).
+- Judul dan subjudul banner (dan teks serupa) boleh dikosongkan, dengan tombol cepat "Kosongkan". Bila teks kosong, tampilkan gambar murni tanpa gradien, lapisan gelap, atau wadah teks yang menutupi gambar.
+- Semua kolom edit atau input teks otomatis membesar ke bawah mengikuti isinya, tanpa bilah gulir internal.
+- Tidak ada gambar bawaan yang ditulis mati di kode atau komponen. Semua gambar berasal dari pengaturan yang bisa diganti atau dihapus dari panel; bila kosong tampilkan kerangka netral.
+- Visual bersih: spasi lega, tanpa elemen dekoratif tanpa fungsi, dan tampilan HP tetap rapi, proporsional, serta tidak ada elemen tersembunyi.
+- Setiap perubahan baru mempertahankan semua aturan di atas. Jika sebuah permintaan bertentangan dengan aturan ini, tetap patuhi aturan dan sampaikan secara singkat di respons, bukan di tampilan aplikasi.
+
+## 3b. Pengecualian Resmi untuk Tab Kelas
+Tiga hal ini mengalahkan aturan umum di atas dan di bagian lain berkas ini. Selain ketiganya, semua aturan di atas tetap berlaku penuh.
+1. Tombol "Simpan & Sinkronkan" di tab Kelas SELALU aktif dan dapat diketuk kapan saja, juga saat tidak ada perubahan. Aturan "aktif hanya bila ada perubahan draf" tidak berlaku untuk tab ini.
+2. Data Kelas ditarik dari Apps Script setiap 5 detik saat halaman aktif. Jeda minimal 30 detik antar tarikan yang berlaku untuk bagian lain tidak berlaku untuk data Kelas.
+3. Label pilihan status di formulir hanya "Aktif" dan "Nonaktif". Keterangan tambahan dalam tanda kurung dilarang karena termasuk teks petunjuk.
+
+## 4. Model Data Kelas (kontrak antara aplikasi dan Apps Script)
+Satu kelas adalah satu objek, dan di Google Sheets menjadi satu baris pada sheet "Kelas". Nama bidang dan nama kolom sama persis di aplikasi dan di Apps Script:
+- id: teks unik yang dibuat saat kelas dibuat dan tidak pernah berubah.
+- nama (wajib), slug (unik), gambar (tautan berupa teks, tidak pernah base64), hargaNormal (angka bulat rupiah), hargaSekarang (angka bulat rupiah), status ("aktif" atau "nonaktif"), tautan (URL pendaftaran), deskripsiSingkat, deskripsiLengkap.
+- kurikulum: daftar pertemuan, tiap butir berisi nomor, judul, dan ringkasan. Di sheet disimpan sebagai teks JSON dalam satu sel.
+- faq: daftar butir berisi pertanyaan dan jawaban. Di sheet disimpan sebagai teks JSON dalam satu sel.
+- klik: angka jumlah ketukan "Daftar Sekarang". Hanya dihitung dan ditulis oleh server; simpanan dari admin tidak pernah menimpanya.
+- dibuat dan diubah: cap waktu dalam milidetik. "diubah" diperbarui setiap kali kelas diterapkan atau disimpan.
+- dihapus: benar atau salah. Menghapus kelas tidak membuang barisnya; baris ditandai dihapus (batu nisan) agar penghapusan menyebar ke semua perangkat dan kelas tidak hidup kembali dari salinan lama. Kelas yang dihapus tidak pernah tampil di mana pun dan tidak dihitung dalam pemeriksaan slug unik.
+- Batas ukuran: kurikulum atau faq yang melebihi 40.000 karakter setelah dijadikan teks ditolak saat "Terapkan" dengan pesan galat singkat "Terlalu panjang". Nilai gambar yang diawali "data:" ditolak.
+
+## 5. Panel Admin: Tab Kelas
+
+### 5A. Daftar Kelas (tampilan grid)
+- Bilah atas tab: tombol utama "Tambah Kelas" di kanan atas daftar, serta tombol "Muat Templat" dan "Ekspor CSV".
+- Daftar berupa grid kartu: 1 kolom di HP, 2 kolom di tablet, 3 kolom di desktop. Tiap kartu berisi thumbnail sampul 16:9 (kerangka abu netral bila kosong), badge status "Aktif" (hijau) atau "Nonaktif" (abu), jumlah klik (ikon dan angka), nama kelas, harga normal dicoret dan harga sekarang, tombol "Ubah" (garis tepi) dan tombol "Hapus" (merah).
+- "Hapus" membuka dialog konfirmasi berjudul "Hapus kelas?" dengan tombol "Hapus" dan "Batal". Setelah dikonfirmasi, kelas langsung hilang dari daftar dan masuk ke perubahan yang belum disimpan.
+- Kartu yang punya perubahan belum disimpan diberi penanda titik kecil.
+- Urutan: kelas yang paling baru dibuat berada di atas.
+- Daftar menampilkan draf (termasuk perubahan yang belum disimpan). Angka klik dan perubahan dari perangkat lain ikut diperbarui langsung pada kartu saat data ditarik, tanpa mengganggu dialog yang sedang terbuka.
+- Keadaan kosong: judul "Belum ada kelas" dengan tombol "Tambah Kelas" dan "Muat Templat".
+- "Muat Templat": dalam satu ketukan menambahkan 3 templat dari bagian 9 ke draf. Templat yang slug-nya sudah ada dilewati agar tidak ganda. Hasilnya muncul sebagai perubahan belum disimpan; admin menekan "Simpan & Sinkronkan" untuk menerbitkannya.
+- "Ekspor CSV": mengunduh berkas kelas.csv di perangkat (UTF-8 dengan BOM agar terbaca benar di Excel) berisi SEMUA kelas, aktif maupun nonaktif, dengan kolom Nama, Slug, Status, Harga Normal, Harga Sekarang, Tautan Pendaftaran, Klik, Deskripsi Singkat, dan Jumlah Pertemuan. Tanda kutip, koma, dan baris baru di dalam isi diloloskan dengan benar.
+
+### 5B. Dialog Tambah dan Ubah Kelas
+Dialog berjudul "Tambah Kelas" atau "Ubah Kelas". Di HP tampil sebagai panel dari bawah hampir penuh layar; isinya bisa digulir dan bilah aksi "Terapkan" dan "Batal" selalu terlihat di bawah. Kolom berurutan:
+1. Nama Kelas (wajib, tanda *).
+2. Alamat Halaman (slug), dengan awalan "/kelas/" tampil di dalam kolom. Saat kelas BARU dibuat, slug otomatis dibuat dari nama (huruf kecil, tanpa aksen, selain huruf dan angka menjadi tanda hubung, tanda hubung ganda dan di ujung dibuang, misalnya "kelas-website-ai-studio") dan terus mengikuti nama sampai admin mengetik slug sendiri. Pada kelas yang sudah ada, slug TIDAK berubah otomatis saat nama diubah agar tautan yang sudah dibagikan tidak rusak. Slug harus unik di antara kelas yang belum dihapus; bila bentrok tampilkan galat "Sudah dipakai".
+3. Gambar Sampul: komponen ImageUploader dengan tiga tab pendek "Unggah", "Tautan", dan "Galeri" (Galeri berisi gambar yang sudah pernah diunggah ke Drive, pilih lewat ketukan), pratinjau instan 16:9 segera setelah gambar dipilih (selama mengunggah tampilkan pratinjau lokal dan indikator putar), dan ikon "Hapus Gambar". Yang tersimpan hanya tautan teks, tidak pernah base64.
+4. Harga Normal (Rp) dan 5. Harga Sekarang (Rp): kolom angka yang mengabaikan semua huruf dan simbol, tidak pernah menampilkan awalan 0 yang mengganggu saat mengetik (mengetik "0199" langsung menjadi "199"), memberi pemisah ribuan titik saat mengetik tanpa membuat kursor melompat, dan boleh dikosongkan (kosong tidak otomatis menjadi 0). Kolom memakai papan angka di HP. Harga sekarang yang lebih besar dari harga normal ditolak dengan galat "Melebihi harga normal".
+6. Status: dropdown berisi "Aktif" dan "Nonaktif". Kelas baru bawaannya "Aktif". Kelas Nonaktif sama sekali tidak tampil di website publik dan datanya tidak dikirim ke pengunjung.
+7. Tautan Pendaftaran: kolom URL. Saat kolom kehilangan fokus dan saat "Terapkan", isi dilengkapi otomatis: "lynk.id/..." atau "www.lynk.id/..." menjadi "https://lynk.id/..."; "wa.me/..." menjadi "https://wa.me/..."; nomor WhatsApp yang diawali 08 atau 62 menjadi "https://wa.me/62...". Isi yang tetap bukan URL valid ditolak dengan galat "Tautan tidak valid". Boleh dikosongkan.
+8. Deskripsi Singkat: auto-textarea (tumbuh ke bawah mengikuti isi), dipakai di kartu.
+9. Deskripsi Lengkap: auto-textarea, dipakai di halaman detail; baris baru dipertahankan saat tampil.
+10. Materi Pertemuan (kurikulum): tombol "+ Tambah Pertemuan" menambah satu baris di bagian bawah daftar dan memfokuskan kolom judulnya. Tiap baris berisi Nomor Pertemuan (terisi otomatis berurutan dan dinomori ulang setelah ada yang dihapus), Judul Materi, Ringkasan Materi (auto-textarea), dan tombol "Hapus Pertemuan". Baris yang judul dan ringkasannya kosong dibuang saat "Terapkan".
+11. FAQ Kelas: tombol "+ Tambah Pertanyaan"; tiap baris berisi Pertanyaan, Jawaban (auto-textarea), dan tombol "Hapus Pertanyaan". Baris kosong dibuang saat "Terapkan".
+
+"Terapkan" memeriksa semua isian lalu menampilkan galat singkat tepat di bawah kolom yang bermasalah; bila lolos, kelas dimasukkan ke draf dengan "diubah" terbaru, dialog menutup, dan kartu langsung muncul atau berubah di daftar. "Terapkan" tidak mengirim apa pun ke server. Menutup dialog yang punya perubahan memunculkan dialog singkat berjudul "Buang perubahan?" dengan tombol "Buang" dan "Lanjutkan".
+
+### 5C. Tombol Simpan & Sinkronkan (di bawah tab)
+Satu-satunya tombol simpan di tab Kelas, berlabel "Simpan & Sinkronkan", emas keemasan, tertanam di bilah tetap di bagian bawah tab (penuh lebar di HP, di atas area aman layar; kanan bawah di desktop), SELALU aktif.
+- Lencana kecil pada tombol menampilkan jumlah perubahan yang belum disimpan. Di sebelah tombol ada lencana status satu kata: "Tersinkron", "Menyinkronkan", "Belum tersinkron", "Offline", "Belum aktif" (URL Apps Script belum diisi), atau "Kode Lama" (kode Apps Script yang terpasang belum mengenal Kelas).
+- SATU KALI KETUK LANGSUNG LOADING. Pada ketukan pertama, di dalam handler yang sama dan SEBELUM proses apa pun berjalan, tombol langsung masuk keadaan memuat: indikator putar muncul, label berubah menjadi "Menyimpan", dan ketukan tambahan selama memuat diabaikan (tidak menumpuk). Tidak boleh ada jeda, dan tidak boleh perlu ketukan kedua.
+- Agar ketukan pertama tidak pernah hilang: posisi dan ukuran tombol tidak berubah oleh perubahan status; tombol tidak dibuat ulang (komponen yang sama) dan tidak dinonaktifkan oleh perubahan status; setiap ketikan di kolom langsung masuk ke state dialog sehingga tidak ada pekerjaan yang menunggu kolom kehilangan fokus; area sentuh tinggi minimal 48px dengan respons ketukan tanpa tunda.
+- Alur setelah diketuk: (a) hitung perubahan sejak simpanan terakhir (kelas yang ditambah, diubah, dan dihapus); (b) langsung tulis ke penyimpanan lokal sebagai data terbit dan siarkan ke tab lain (instan, tanpa menunggu jaringan); (c) kirim HANYA perubahan itu ke Apps Script; (d) bila respons sukses: terapkan hasil dari server, lencana menjadi "Tersinkron", dan notifikasi "Berhasil disimpan" tampil 0,5 detik; (e) bila gagal, ditolak, atau melewati 10 detik: notifikasi "Gagal menyimpan", kelas terkait tetap bertanda "Belum tersinkron", draf tidak hilang, tombol kembali normal, dan ketukan berikutnya mengulang pengiriman. Tidak ada percobaan ulang otomatis; penyimpanan hanya terjadi lewat tombol ini.
+- Bila tidak ada perubahan, ketukan tetap berjalan sebagai sinkron penuh: menarik data terbaru dari server dan memperbarui lencana, lalu "Berhasil disimpan".
+- Bila URL Apps Script belum diisi, perubahan tetap tersimpan lokal dan tersiar ke tab lain, dan lencana menunjukkan "Belum aktif".
+
+## 6. Website Publik
+
+### 6A. Bagian Kelas di Beranda
+- Menampilkan SEMUA kelas yang statusnya "aktif" dan belum dihapus. Penyaringan ini selalu dilakukan saat menampilkan, bukan hanya saat data diambil, karena perangkat admin menyimpan semua kelas di penyimpanan lokalnya. Bila tidak ada kelas aktif, bagian ini tidak ditampilkan sama sekali.
+- Judul bagian "Kelas". Grid kartu: 1 kolom di HP, 2 di tablet, 3 di desktop, tinggi kartu seragam dengan tombol sejajar di dasar kartu.
+- Kartu kelas: gambar sampul 16:9 responsif (dimuat belakangan bila di luar layar; kerangka abu netral bila kosong atau gagal), judul maksimal 2 baris, deskripsi singkat maksimal 3 baris, harga: harga normal dicoret (misalnya Rp299.000) hanya bila lebih besar dari harga sekarang, dan harga sekarang yang mencolok (misalnya Rp199.000); harga sekarang 0 tampil "Gratis"; bila harga sekarang kosong, tampilkan harga normal tanpa coretan.
+- Tombol "Lihat Detail" (garis tepi) membuka halaman detail di dalam aplikasi tanpa memuat ulang halaman. Tombol "Daftar Sekarang" (utama) berupa tautan sungguhan yang membuka tautan pendaftaran di tab baru (dengan rel noopener noreferrer, agar tidak diblokir peramban); bila tautan kosong, tombol ini tidak tampil dan "Lihat Detail" mengisi lebar penuh.
+- Setiap ketukan "Daftar Sekarang" (di kartu dan di halaman detail) menambah hitungan klik di server tanpa menunda atau menghalangi terbukanya tautan, dan tidak menunggu respons. Ketukan beruntun pada kelas yang sama dalam 2 detik dihitung satu.
+
+### 6B. Halaman Detail Kelas (/kelas/:slug)
+- Bilah atas menempel di atas: tombol kembali ke beranda (ikon panah dan label "Beranda") dan nama kelas satu baris (dipotong rapi bila panjang).
+- Banner utama: gambar sampul besar 16:9 dengan sudut membulat elegan, tidak lebih tinggi dari satu layar di HP.
+- Rincian: nama kelas, harga sekarang yang mencolok dan harga normal dicoret (aturan tampil harga sama seperti kartu), tombol "Daftar Sekarang", lalu deskripsi lengkap dengan baris baru dipertahankan.
+- Materi Pembelajaran: akordeon kurikulum. Tiap baris menampilkan "Pertemuan N" dan judul materi; mengetuk membuka atau menutup ringkasan materinya dengan animasi halus. Pertemuan pertama terbuka saat halaman dimuat, membuka satu tidak menutup yang lain, dan keadaan buka-tutup tidak berubah saat data diperbarui di latar. Bagian ini tidak tampil bila kurikulum kosong.
+- FAQ Kelas: akordeon pertanyaan dan jawaban khusus kelas itu (dari bidang faq); tidak tampil bila kosong.
+- Kelas Lainnya: maksimal 3 kelas aktif lain (selain kelas ini), terbaru dulu, memakai tampilan kartu yang sama; tidak tampil bila tidak ada.
+- Di HP, bilah bawah tetap berisi harga sekarang dan tombol "Daftar Sekarang" penuh lebar di atas area aman layar; isi halaman diberi ruang bawah agar tidak tertutup.
+- Judul tab peramban dan deskripsi meta halaman diperbarui dinamis menjadi nama kelas dan deskripsi singkat.
+- Slug yang tidak ada, kelas nonaktif, atau kelas yang dihapus menampilkan judul "Kelas tidak ditemukan" dengan tombol "Kembali ke Beranda". Keadaan ini hanya muncul setelah penarikan data pertama selesai (sebelumnya tampil kerangka pemuatan, sehingga tautan langsung tidak berkedip "tidak ditemukan"). Bila kelas yang sedang dibuka dinonaktifkan atau dihapus admin, halaman beralih ke keadaan ini saat data diperbarui.
+
+### 6C. Alamat dan Pemuatan
+Halaman detail memiliki alamat sendiri "/kelas/:slug" yang bisa dibagikan, dibuka langsung dari tautan, dan dimuat ulang tanpa galat halaman tidak ditemukan. Tombol kembali dan maju peramban atau HP berfungsi benar. Data terakhir di penyimpanan lokal dipakai untuk tampil seketika (0 milidetik) saat halaman dibuka, lalu diperbarui di latar. Tanpa data lokal, tampilkan kerangka pemuatan netral, bukan halaman kosong.
+
+## 7. Sinkronisasi Satu Perangkat (banyak tab, instan)
+Bagian ini dikerjakan lebih dulu dan berjalan penuh tanpa Apps Script.
+- Dua lapis data di penyimpanan lokal (LocalStorage), semuanya teks: "kelas_terbit" (data yang dibaca website publik) dan "kelas_draf" (salinan kerja admin yang berisi perubahan belum disimpan), ditambah "kelas_meta" (rev terakhir, waktu tarik terakhir, dan daftar kelas yang belum tersinkron). Semua pembacaan dan penulisan dibungkus try/catch dan tidak pernah melempar galat; bila LocalStorage tidak tersedia atau penuh, aplikasi tetap berjalan dengan penyimpanan sementara di memori dan "Simpan & Sinkronkan" menampilkan "Gagal menyimpan".
+- Setiap kali "kelas_terbit" atau "kelas_draf" berubah, tab itu mengirim pemberitahuan lewat BroadcastChannel (saluran "kelas-sinkron", berisi jenis perubahan, nomor versi lokal, dan penanda tab pengirim). Sebagai cadangan, semua tab juga mendengarkan event "storage" untuk kedua kunci itu. Keduanya aktif bersamaan dan pemberitahuan ganda diabaikan lewat nomor versi lokal, sehingga tidak ada render dua kali. Pemberitahuan dari tab sendiri diabaikan. Bila BroadcastChannel tidak didukung, event "storage" saja sudah cukup.
+- Tab penerima langsung membaca ulang data, menormalkannya, dan memperbarui tampilannya seketika (0 milidetik, tanpa menunggu jaringan), tanpa memuat ulang halaman, tanpa menggeser posisi gulir, tanpa menutup akordeon yang terbuka, dan tanpa mengubah isi dialog yang sedang terbuka.
+- Hasilnya: admin menekan "Simpan & Sinkronkan" di satu tab, dan tab website publik di peramban yang sama langsung berubah; perubahan draf di satu tab admin juga langsung memperbarui grid di tab admin lain.
+
+## 8. Validasi Data Aman (normalizeClassItem)
+Buat fungsi normalizeClassItem(raw) yang menerima APA PUN (objek utuh, objek setengah jadi, teks JSON, null, undefined, tipe salah) dan SELALU mengembalikan kelas yang lengkap dan valid, atau null bila tidak bisa diselamatkan (tidak ada nama dan tidak ada id). Fungsi ini TIDAK PERNAH melempar galat. Aturannya:
+- id: dibuat baru bila kosong. nama, slug, gambar, tautan, deskripsiSingkat, deskripsiLengkap: dipaksa menjadi teks dan dirapikan; slug kosong dibuat dari nama.
+- hargaNormal dan hargaSekarang: dipaksa menjadi angka bulat tidak negatif, termasuk dari teks seperti "199.000" atau "Rp199000"; yang tidak bisa dibaca menjadi 0.
+- status: hanya "aktif" atau "nonaktif"; nilai lain menjadi "nonaktif" supaya data rusak tidak tampil di publik.
+- kurikulum dan faq: bila berupa teks, di-parse dengan try/catch; bila hasilnya bukan daftar menjadi daftar kosong; tiap butir yang bukan objek dibuang; tiap bidang butir dipaksa menjadi teks; butir kosong dibuang; nomor pertemuan dinomori ulang berurutan.
+- klik, dibuat, dan diubah: angka valid (bawaan 0 untuk klik dan waktu sekarang untuk cap waktu); dihapus: benar atau salah.
+- Gambar yang diawali "data:" dikosongkan.
+Buat juga normalizeClassList(raw) yang menerima daftar, objek berisi daftar, atau teks JSON; menormalkan tiap butir, membuang yang null, menggabungkan id ganda (yang "diubah"-nya terbaru menang), dan menjamin slug tidak kembar saat ditampilkan.
+Fungsi ini dipakai di SETIAP batas data: saat membaca penyimpanan lokal, menerima pemberitahuan antar tab, menerima respons Apps Script, membuka dialog, memuat templat, mengekspor CSV, dan sebelum menampilkan apa pun di website publik. Setiap kartu dan setiap rute Kelas dibungkus error boundary sehingga satu data bermasalah hanya menyembunyikan kartunya sendiri dan tidak pernah membuat layar kosong atau aplikasi crash.
+
+## 9. Data Contoh (3 Templat Kelas)
+Dipakai tombol "Muat Templat". Semua bergambar kosong (kerangka netral) dan bertautan pendaftaran kosong sampai admin mengisinya; status "aktif".
+1. Nama "Kelas Website AI Studio", slug "kelas-website-ai-studio", hargaNormal 299000, hargaSekarang 199000. Deskripsi singkat: "Bangun website sekolah, bisnis, atau organisasi lengkap dengan panel admin memakai Google AI Studio, tanpa perlu bisa coding." Deskripsi lengkap: dua paragraf tentang hasil yang didapat peserta (website yang rapi di HP, panel admin untuk mengelola konten sendiri, data yang tersinkron ke Google Sheets) dan cara belajarnya (langkah demi langkah memakai prompt berbahasa Indonesia). Pertemuan: (1) "Mengenal Google AI Studio dan Merancang Ide Website" dengan ringkasan mengenal mode Build, menuliskan ide, dan menyusun kebutuhan halaman; (2) "Menyusun Prompt Website yang Detail" dengan ringkasan menulis prompt berisi halaman, fitur, warna, dan aturan tampilan agar hasil rapi di HP; (3) "Panel Admin dan Pengelolaan Konten" dengan ringkasan membuat login, tab pengelolaan, dan pengaturan yang bisa diubah tanpa menyentuh kode; (4) "Sinkronisasi Google Sheets dan Publikasi" dengan ringkasan menghubungkan data ke Google Sheets lewat Apps Script lalu merilis website. FAQ: "Apakah saya harus bisa coding?" dijawab tidak perlu karena seluruh pembuatan dilakukan lewat prompt berbahasa Indonesia; "Apa yang perlu disiapkan?" dijawab akun Google dan koneksi internet, laptop atau HP sudah cukup; "Bagaimana cara mendaftar?" dijawab tekan "Daftar Sekarang" lalu selesaikan pendaftaran di halaman yang terbuka.
+2. Nama "Kelas Landing Page Produk Digital", slug "kelas-landing-page-produk-digital", hargaNormal 249000, hargaSekarang 149000. Deskripsi singkat: "Buat halaman penjualan yang meyakinkan untuk produk digital Anda dan ubah pengunjung menjadi pembeli." Deskripsi lengkap dua paragraf tentang halaman penjualan yang siap dipakai di HP dan tautan beli langsung. Pertemuan: (1) "Memilih Produk dan Menyusun Penawaran", (2) "Menulis Teks Jualan yang Meyakinkan", (3) "Membangun Halaman dengan AI Studio", (4) "Memasang Tautan Beli dan Membaca Klik", masing-masing dengan ringkasan satu kalimat yang sesuai. FAQ: "Apakah cocok untuk pemula?" dan "Produk apa saja yang bisa dijual?" dengan jawaban singkat yang netral.
+3. Nama "Kelas Dashboard Laporan Google Sheets", slug "kelas-dashboard-laporan-google-sheets", hargaNormal 349000, hargaSekarang 249000. Deskripsi singkat: "Ubah data di Google Sheets menjadi dashboard laporan yang rapi dan bisa dibuka dari HP." Deskripsi lengkap dua paragraf tentang laporan yang tampil sebagai grafik dan ringkasan. Pertemuan: (1) "Menyiapkan Data di Google Sheets", (2) "Merancang Tampilan Dashboard", (3) "Membuat Grafik dan Ringkasan Laporan", (4) "Membagikan Laporan ke Banyak Perangkat", masing-masing dengan ringkasan satu kalimat yang sesuai. FAQ: "Apakah data saya aman?" dan "Apakah bisa dibuka dari HP?" dengan jawaban singkat yang netral.
+
+## 10. Keadaan Khusus
+Tanpa teks petunjuk: kerangka pemuatan netral saat data belum ada; judul singkat untuk keadaan kosong ("Belum ada kelas"); gambar gagal dimuat menjadi latar abu halus tanpa teks; lencana "Offline" bila tidak ada koneksi, dan saat offline tidak ada permintaan jaringan yang dikirim; aksesibilitas dasar (label tersembunyi pada ikon, urutan fokus keyboard, kontras cukup).
+
+## 11. Uji Penerimaan (periksa dan perbaiki sampai SEMUA lulus sebelum menyatakan selesai)
+1. Ketukan pertama "Simpan & Sinkronkan" langsung memunculkan loading, tanpa ketukan kedua, di HP dan di desktop, juga saat kolom terakhir yang diketik masih terfokus.
+2. Tambah kelas lalu "Terapkan" lalu "Simpan & Sinkronkan": kelas langsung tampil di tab website publik lain pada peramban yang sama.
+3. Ubah status menjadi Nonaktif lalu simpan: kelas hilang seketika dari tab publik lain, dan dari perangkat lain dalam sekitar 5-10 detik tanpa muat ulang.
+4. Hapus kelas lalu simpan: kelas hilang di semua tab dan perangkat dan tidak hidup kembali pada tarikan berikutnya.
+5. Simpan dari PC, sementara halaman publik terbuka di HP: HP berubah sendiri dalam sekitar 5-10 detik.
+6. Data rusak (kurikulum berupa teks JSON, null, atau string asal-asalan) tidak menimbulkan galat dan tidak membuat layar kosong.
+7. Saat Apps Script mati atau tidak ada internet: "Gagal menyimpan", draf utuh, data lokal tetap tampil, dan ketukan berikutnya mengulang pengiriman.
+8. Perubahan draf yang belum disimpan tidak tertimpa oleh tarikan data otomatis.
+9. Harga bisa diketik tanpa awalan 0 yang mengganggu; "lynk.id/..." otomatis menjadi "https://lynk.id/...".
+10. "/kelas/slug" bisa dibuka langsung dan dimuat ulang; "Daftar Sekarang" membuka tab baru dan klik bertambah di kartu admin.
+11. Tidak ada teks petunjuk di mana pun; tampilan rapi di lebar 360px, 390px, dan 430px; build bersih.
+
+## 12. Batasan
+Hal-hal ini hanya untuk AI Studio dan tidak boleh muncul di tampilan aplikasi. Tidak ada pembayaran di dalam aplikasi; pendaftaran dan pembayaran terjadi di tautan Lynk.id atau WhatsApp. Jangan menambah fitur di luar spesifikasi ini dan jangan mengubah bagian aplikasi lain. Fitur PWA tidak disertakan. Jangan mengintegrasikan atau memasang layanan Firebase atau Firestore; seluruh penyimpanan memakai data lokal dan, bila diminta, Google Sheets lewat Apps Script.
+Pastikan proyek ini, saat di-push ke GitHub lalu di-deploy lewat Vercel, tidak menghasilkan error pada "npm run build" (exited with 1). Periksa dan perbaiki sendiri sebelum menyatakan selesai: semua impor mengarah ke berkas yang benar-benar ada dengan nama dan huruf besar/kecil yang cocok persis, tidak ada galat sintaks atau tipe, dan semua paket yang dipakai tercantum di dependensi proyek.
+
+## 13. Ringkasan Struktur Aplikasi (bagian Kelas, untuk revisi berikutnya)
+- Halaman publik: bagian "Kelas" di beranda (kartu kelas aktif) dan halaman detail "/kelas/:slug" (banner, rincian, akordeon kurikulum, FAQ, kelas lainnya, bilah daftar di HP).
+- Panel admin: tab "Kelas" (grid kartu, Tambah Kelas, Muat Templat, Ekspor CSV, dialog tambah dan ubah, bilah "Simpan & Sinkronkan" dengan lencana status). Peran: admin dan superadmin mengelola Kelas; publik hanya melihat kelas aktif.
+- Koleksi data: kelas (model di bagian 4), disimpan lokal pada "kelas_terbit", "kelas_draf", "kelas_meta"; di server pada sheet "Kelas".
+- Modul: data/kelasModel (normalizeClassItem, normalizeClassList, pembuat slug, normalisasi tautan, pemformat dan pembaca rupiah); data/kelasStore (lapis draf dan terbit, LocalStorage, BroadcastChannel dan event storage, langganan perubahan); data/kelasSync (klien Apps Script: versi, tarik, simpan, klik; pengendali polling 5 detik); data/kelasTemplat (3 templat); admin/KelasTab, admin/KartuKelasAdmin, admin/FormKelas, admin/EditorPertemuan, admin/EditorFaq, admin/BilahSimpanSinkron, admin/eksporKelasCsv; komponen bersama ImageUploader, AutoTextarea, InputRupiah, ErrorBoundary; publik: pages/KelasBeranda, pages/KelasDetail, components/KartuKelasPublik, components/AkordeonKurikulum, components/FaqKelas, components/RekomendasiKelas. Bila berkas serupa sudah ada, ubah yang ada dan jangan menggandakan.
+- Integrasi: Apps Script dan Google Sheets (aksi kelas.versi, kelas.tarik, kelas.simpan, kelas.klik) lewat tab Sinkronisasi; Google Drive untuk gambar.
+- Gaya: mengikuti tema aplikasi; tombol "Simpan & Sinkronkan" emas keemasan; tanpa teks petunjuk.
+- Batasan: tanpa PWA, tanpa pembayaran di dalam aplikasi, penyimpanan hanya lokal dan Google Sheets lewat Apps Script.
+
+## 14. Struktur Kode Modular
+Susun kode dalam modul-modul terpisah berupa komponen TSX: satu modul per halaman, per fitur, dan per bagian panel (admin, CMS, superadmin), ditambah komponen bersama yang dipakai ulang (menu, tombol, formulir, kartu, dialog, pengunggah gambar, grafik). Satu berkas satu tanggung jawab, berukuran wajar, bernama jelas, dan dikelompokkan dalam folder yang logis (misalnya halaman, komponen bersama, admin, data, dan konstanta), sehingga satu bagian bisa diubah tanpa menyentuh bagian lain. Pisahkan data dan pengaturan dari tampilan, dan letakkan aturan desain permanen di berkas tersendiri. Hindari satu berkas besar yang berisi banyak hal. Setiap revisi hanya mengubah modul yang diminta, tanpa menyentuh modul lain.
+
+## Sinkronisasi ke Google Sheets (LANGKAH TERAKHIR)
+Kerjakan bagian ini PALING AKHIR, setelah semua bagian di atas selesai dan berjalan baik dengan penyimpanan lokal dan siaran antar tab. Jangan mengubah tampilan dan fitur yang sudah jadi. Patuhi berkas aturan desain permanen (designSystem), dan jangan menambahkan teks petunjuk, penjelasan fungsi, atau keterangan teknis apa pun di tampilan, termasuk soal spreadsheet.
+
+Semua pertukaran data Kelas dengan Google Sheets memakai Google Apps Script, tanpa kecuali; aplikasi tidak pernah membaca atau menulis sheet secara langsung. Perbarui kode Apps Script di tab Sinkronisasi pada panel admin menjadi SATU kode utuh yang siap tempel dan menggantikan kode lama (fungsi lama seperti login, unggah, galeri, dan penyiapan tetap ada), dengan tambahan berikut.
+
+### Sisi Apps Script
+- Sheet "Kelas" dibuat otomatis oleh fungsi "siapkan" bila belum ada: satu kelas satu baris, kolom sama persis dengan model data di bagian 4 (kurikulum dan faq sebagai teks JSON). Angka "rev" (nomor revisi data Kelas) disimpan di properti skrip.
+- kelas.versi (publik, sangat ringan): hanya mengembalikan rev dan total klik. Perubahan jumlah klik TIDAK menaikkan rev agar pengunjung tidak menarik ulang data setiap ada klik; admin mengetahui perubahan klik lewat total klik ini.
+- kelas.tarik: tanpa sesi login hanya mengembalikan kelas berstatus aktif yang belum dihapus (tanpa kolom klik); dengan sesi admin yang sah mengembalikan semua kelas yang belum dihapus beserta klik. Hasilnya berupa snapshot lengkap beserta rev. Data kelas nonaktif tidak pernah dikirim ke pengunjung.
+- kelas.simpan (wajib sesi admin): menerima daftar kelas yang ditambah atau diubah dan daftar id yang dihapus. Hanya kelas yang dikirim yang ditulis (upsert berdasarkan id); kolom klik tidak pernah ditulis. Seluruh penulisan berlangsung di dalam satu kunci (LockService) agar dua simpanan bersamaan tidak saling merusak, rev naik satu kali per simpanan, dan responsnya berisi snapshot terbaru, rev, serta daftar kelas yang ditolak beserta alasannya (slug dipakai kelas lain, kelas sudah dihapus di server, terlalu panjang, atau tidak valid). Kelas yang sudah ditandai dihapus di server tidak boleh dihidupkan kembali oleh simpanan dari salinan lama; aplikasi membuangnya dari draf.
+- Menghapus berarti menandai kolom dihapus menjadi benar, bukan membuang baris.
+- kelas.klik (publik): menambah klik satu kali untuk id atau slug yang dikirim, di dalam kunci yang sama; id tak dikenal diabaikan; tidak menaikkan rev.
+- Uji Koneksi menyertakan daftar kemampuan skrip sehingga aplikasi tahu apakah Kelas didukung; bila belum, lencana status di tab Kelas menampilkan "Kode Lama".
+- Aksi yang mengubah data atau mengambil data non-publik hanya diterima dengan sesi login yang sah. Hash kata sandi dan token tidak pernah dikembalikan ke aplikasi.
+
+### Sisi Aplikasi
+- Pengiriman memakai POST dengan Content-Type text/plain;charset=utf-8 (agar tidak terhalang CORS), tanpa mode no-cors, dan aplikasi SELALU membaca respons JSON-nya. Respons yang bukan JSON (misalnya halaman galat HTML dari Apps Script) dianggap gagal; proses parse dibungkus try/catch. Batas waktu tiap permintaan 10 detik. Penyimpanan dianggap berhasil hanya bila respons menandakan sukses; bila tidak, tampilkan "Gagal menyimpan" dan pertahankan draf.
+- Polling lintas perangkat setiap 5 detik selama halaman aktif (terlihat atau terfokus): dijalankan dengan satu rantai penjadwalan yang menjadwalkan tarikan berikutnya hanya setelah yang sebelumnya selesai, sehingga permintaan tidak pernah menumpuk. Tiap putaran memanggil kelas.versi (ringan); kelas.tarik (penuh) dipanggil hanya bila rev berubah, saat halaman pertama dibuka, atau saat admin menekan "Simpan & Sinkronkan". Polling berhenti saat tab tersembunyi atau tidak ada koneksi, dan langsung menarik sekali begitu halaman kembali terlihat, terfokus, atau koneksi pulih. Bila galat, jeda naik bertahap (5, 10, 20, maksimal 30 detik) lalu kembali ke 5 detik setelah berhasil. Di perangkat admin yang sudah login, tarikan memakai sesi admin sehingga kelas nonaktif dan angka klik ikut diperbarui; di perangkat pengunjung tarikan tanpa sesi.
+- Penggabungan hasil tarikan: snapshot server menjadi acuan untuk semua kelas, KECUALI kelas yang berstatus belum tersinkron, yang sedang punya perubahan di draf, atau yang sedang dibuka di dialog; kelas-kelas itu tidak boleh tertimpa. Kelas yang tidak ada lagi di snapshot (dihapus atau dinonaktifkan di perangkat lain) dibuang dari data lokal, kecuali kelas yang baru dibuat di perangkat ini dan belum pernah tersimpan. Hasil digabung bertingkat (deep merge) dengan nilai awal model melalui normalizeClassItem. Setelah penggabungan, data terbit lokal diperbarui dan disiarkan ke tab lain.
+- Tampilan hanya dirender ulang bila data benar-benar berubah (bandingkan id dan "diubah"), tanpa berkedip, tanpa menggeser posisi gulir, dan tanpa mengganggu dialog atau akordeon yang terbuka.
+- Penyimpanan bersifat menimpa per kelas (kelas yang terakhir disimpan menang); kelas yang tidak disentuh admin tidak pernah ikut terkirim atau tertimpa.
+- Satu sel Google Sheets maksimal 50.000 karakter: gambar hanya berupa tautan, kurikulum dan faq dibatasi 40.000 karakter, dan data URL atau base64 ditolak.
+- Hanya teks atau tautan berupa teks yang disimpan di sheet; file tetap lewat Google Drive dengan hanya tautannya yang disimpan.
+
+PENTING: tampilan aplikasi harus bersih dan profesional seperti produk jadi, sempurna dan responsif di layar HP (menu, tombol, dan semua elemen rapi, proporsional, tidak ada yang tersembunyi), tanpa satu pun teks petunjuk, penjelasan fungsi, atau keterangan teknis (termasuk soal unggah file, Drive, Apps Script, atau spreadsheet). Hanya label, konten, pesan galat, dan notifikasi hasil aksi yang boleh tampil. Tombol, menu, dan kolom harus mudah dipakai dan dipahami lewat label yang jelas saja.

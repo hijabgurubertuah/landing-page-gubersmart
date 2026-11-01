@@ -50,6 +50,13 @@ export const DESIGN_SYSTEM = {
     border: '#e7e1d5',
     white: '#ffffff',
     whatsapp: '#16a34a',
+    saveSyncButton: {
+      from: '#F2C94C',
+      to: '#D4A017',
+      text: '#2B1D00',
+      activeFrom: '#D4A017',
+      activeTo: '#B8860B',
+    },
   },
   typography: {
     heading: "'Lora', Georgia, serif",

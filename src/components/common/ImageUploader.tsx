@@ -199,18 +199,13 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         <button
           type="button"
           onClick={() => handleTabChange('gallery')}
-          className={`pb-2 text-sm font-medium transition flex items-center gap-1.5 ${
+          className={`pb-2 text-sm font-medium transition ${
             activeTab === 'gallery'
               ? 'text-[#07142b] border-b-2 border-[#c9a35a]'
               : 'text-[#6b7280] hover:text-[#1b2433]'
           }`}
         >
-          <span>Galeri Drive</span>
-          {galleryFiles.length > 0 && (
-            <span className="text-[10px] px-1.5 py-0.2 bg-[#07142b]/10 rounded-full font-semibold">
-              {galleryFiles.length}
-            </span>
-          )}
+          Galeri Drive
         </button>
         <button
           type="button"
@@ -243,49 +238,26 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
       ) : activeTab === 'gallery' ? (
         <div className="space-y-2">
-          {/* Gallery Toolbar */}
-          <div className="flex items-center justify-between text-xs text-[#6b7280] px-1">
-            <span className="font-medium text-[#1b2433]">
-              {galleryFiles.length} berkas gambar tersedia
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-                className="inline-flex items-center gap-1 text-[11px] text-[#8c743e] hover:text-[#07142b] font-medium transition"
-                title="Unggah gambar baru ke galeri"
-              >
-                <Upload className="w-3 h-3" />
-                <span>+ Unggah Baru</span>
-              </button>
-              <button
-                type="button"
-                onClick={loadGallery}
-                disabled={isLoadingGallery}
-                className="inline-flex items-center gap-1 text-[11px] text-[#6b7280] hover:text-[#07142b] font-medium transition"
-                title="Segarkan dari Google Drive"
-              >
-                <RefreshCw className={`w-3 h-3 ${isLoadingGallery ? 'animate-spin text-[#c9a35a]' : ''}`} />
-                <span>Segarkan</span>
-              </button>
-            </div>
+          {/* Gallery Toolbar - Cukup tombol segarkan */}
+          <div className="flex items-center justify-end text-xs text-[#6b7280] px-1">
+            <button
+              type="button"
+              onClick={loadGallery}
+              disabled={isLoadingGallery}
+              className="inline-flex items-center gap-1.5 text-xs text-[#6b7280] hover:text-[#07142b] font-medium transition px-2.5 py-1 rounded-md hover:bg-[#07142b]/5"
+              title="Segarkan Galeri Drive"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingGallery ? 'animate-spin text-[#c9a35a]' : ''}`} />
+              <span>Segarkan</span>
+            </button>
           </div>
 
           {galleryFiles.length === 0 ? (
-            <div className="p-6 border border-dashed border-[#e7e1d5] rounded-xl text-center bg-[#f8f5ef] space-y-3">
+            <div className="p-6 border border-dashed border-[#e7e1d5] rounded-xl text-center bg-[#f8f5ef] space-y-2">
               <ImageIcon className="w-8 h-8 mx-auto text-[#c9a35a]/50" />
               <p className="text-xs text-gray-500">
-                Belum ada gambar di galeri. Gambar yang Anda unggah akan otomatis tersimpan di sini.
+                Belum ada gambar di galeri. Gambar yang Anda unggah dari tab Unggah akan otomatis tersimpan di sini.
               </p>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-1.5 rounded-full bg-[#07142b] text-white text-xs font-medium hover:bg-[#0b1c38] transition inline-flex items-center gap-1.5"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Unggah Gambar Pertama</span>
-              </button>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 max-h-56 overflow-y-auto p-2.5 border border-[#e7e1d5] rounded-xl bg-[#f8f5ef]">

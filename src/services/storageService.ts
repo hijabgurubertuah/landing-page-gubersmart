@@ -207,6 +207,9 @@ export const StorageService = {
   saveClasses(classes: ClassItem[]): void {
     const normalized = Array.isArray(classes) ? classes.map(normalizeClassItem) : [];
     setStored(STORAGE_KEYS.CLASSES, normalized);
+    try {
+      localStorage.setItem('kelas_terbit', JSON.stringify(normalized));
+    } catch {}
   },
   getClassBySlug(slug: string): ClassItem | undefined {
     return this.getClasses().find((c) => c.slug === slug);

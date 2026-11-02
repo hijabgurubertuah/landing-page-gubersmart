@@ -107,6 +107,14 @@ export const kelasStore = {
   getPublishedAll(): ClassItem[] {
     const raw = getStoredJson<any>(KEYS.PUBLISHED, null);
     if (!raw) {
+      // Periksa apakah ada data di guber_classes_v1
+      const legacyRaw = getStoredJson<any>('guber_classes_v1', null);
+      if (Array.isArray(legacyRaw) && legacyRaw.length > 0) {
+        const legacyNormalized = normalizeClassList(legacyRaw);
+        setStoredJson(KEYS.PUBLISHED, legacyNormalized);
+        memoryPublished = legacyNormalized;
+        return legacyNormalized.filter((c) => !c.dihapus);
+      }
       const init = TEMPLATE_CLASSES.map((c) => normalizeClassItem(c)!);
       setStoredJson(KEYS.PUBLISHED, init);
       return init.filter((c) => !c.dihapus);
@@ -150,10 +158,16 @@ export const kelasStore = {
 
     setStoredJson(KEYS.PUBLISHED, normalized);
     setStoredJson(KEYS.DRAFT, normalized);
+    // Sinkronkan ke guber_classes_v1 agar komponen legacy & App.tsx langsung sinkron
+    setStoredJson('guber_classes_v1', normalized);
 
     // Rekam ID yang perlu disinkronkan ke server
     const unsyncedIds = normalized.map((c) => c.id);
     this.setMeta({ unsyncedIds });
+
+    try {
+      window.dispatchEvent(new Event('guber_data_updated'));
+    } catch {}
 
     broadcastChange('all');
   },
@@ -195,9 +209,14 @@ export const kelasStore = {
 
     setStoredJson(KEYS.PUBLISHED, finalMerged);
     setStoredJson(KEYS.DRAFT, finalMerged);
+    setStoredJson('guber_classes_v1', finalMerged);
     if (typeof serverRev === 'number') {
       this.setMeta({ rev: serverRev, lastPullTime: Date.now() });
     }
+
+    try {
+      window.dispatchEvent(new Event('guber_data_updated'));
+    } catch {}
 
     broadcastChange('all');
   },

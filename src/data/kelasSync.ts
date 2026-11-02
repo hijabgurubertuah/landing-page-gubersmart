@@ -36,7 +36,7 @@ export const kelasSync = {
     return () => statusListeners.delete(fn);
   },
 
-  // Mengirim aksi simpan kelas ke Apps Script (timeout 10s, POST text/plain)
+  // Mengirim aksi simpan kelas ke Apps Script (kompatibel penuh dengan skrip lama & baru)
   async saveClassesToAppsScript(classes: ClassItem[]): Promise<{ success: boolean; error?: string }> {
     const sync = StorageService.getSyncSettings();
     if (!sync || !sync.webAppUrl || !sync.webAppUrl.trim()) {
@@ -52,7 +52,7 @@ export const kelasSync = {
     setSyncStatus('Menyinkronkan');
 
     try {
-      // Bersihkan dan format data aman untuk Apps Script & Google Sheets
+      // Bersihkan dan format data aman untuk Google Sheets
       const cleanRecords = classes.map((item) => {
         const clean: Record<string, any> = {};
         for (const [key, val] of Object.entries(item)) {
@@ -67,37 +67,52 @@ export const kelasSync = {
         return clean;
       });
 
-      const payload = {
-        action: 'kelas.simpan',
-        token: sync.token,
-        records: cleanRecords,
-        collection: 'Kelas',
+      const executePost = async (actionName: string) => {
+        const payload = {
+          action: actionName,
+          collection: 'Kelas',
+          token: sync.token,
+          records: cleanRecords,
+        };
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+          const res = await fetch(sync.webAppUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          if (!res.ok) return { ok: false, status: res.status, error: 'Server gagal merespons' };
+          const json = await res.json();
+          return { ok: true, json };
+        } catch (e: any) {
+          clearTimeout(timeoutId);
+          return { ok: false, error: e?.message || 'Koneksi gagal' };
+        }
       };
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      // 1. Coba syncData terlebih dahulu (dikenal oleh Apps Script lama dan Apps Script baru)
+      let postResult = await executePost('syncData');
 
-      const res = await fetch(sync.webAppUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
+      // 2. Jika server mengembalikan "Aksi tidak dikenali", coba kelas.simpan
+      const isUnknownAction =
+        postResult.ok &&
+        postResult.json &&
+        !postResult.json.success &&
+        typeof postResult.json.error === 'string' &&
+        postResult.json.error.toLowerCase().includes('aksi tidak');
 
-      clearTimeout(timeoutId);
+      if (isUnknownAction) {
+        postResult = await executePost('kelas.simpan');
+      }
 
-      if (res.ok) {
-        let json: any = null;
-        try {
-          json = await res.json();
-        } catch {
-          setSyncStatus('Belum tersinkron');
-          return { success: false, error: 'Respons server tidak valid' };
-        }
-
-        if (json && json.success) {
+      if (postResult.ok && postResult.json) {
+        const json = postResult.json;
+        if (json.success) {
           if (json.data && Array.isArray(json.data)) {
             kelasStore.mergeServerSnapshot(json.data, json.rev);
           } else if (json.records && Array.isArray(json.records)) {
@@ -105,16 +120,13 @@ export const kelasSync = {
           }
           setSyncStatus('Tersinkron');
           return { success: true };
-        } else if (json && json.error === 'KODE_LAMA') {
-          setSyncStatus('Kode Lama');
-          return { success: false, error: 'Kode Apps Script perlu diperbarui di tab Sinkronisasi' };
         } else {
           setSyncStatus('Belum tersinkron');
-          return { success: false, error: json?.error || 'Gagal menyinkronkan' };
+          return { success: false, error: json.error || 'Gagal menyimpan ke server' };
         }
       } else {
         setSyncStatus('Belum tersinkron');
-        return { success: false, error: 'Gagal menghubungi server' };
+        return { success: false, error: postResult.error || 'Gagal menghubungi server' };
       }
     } catch (err: any) {
       setSyncStatus('Belum tersinkron');
@@ -122,7 +134,7 @@ export const kelasSync = {
     }
   },
 
-  // Menarik snapshot data terbaru dari Apps Script
+  // Menarik snapshot data terbaru dari Apps Script (otomatis fallback ke fetchData jika kelas.tarik belum ada)
   async fetchLatestFromAppsScript(): Promise<boolean> {
     const sync = StorageService.getSyncSettings();
     if (!sync || !sync.webAppUrl || !sync.webAppUrl.trim()) {
@@ -136,34 +148,56 @@ export const kelasSync = {
     }
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      let rawList: any[] | null = null;
+      let serverRev: number | undefined = undefined;
 
-      const res = await fetch(
-        `${sync.webAppUrl}?action=kelas.tarik&token=${encodeURIComponent(sync.token)}`,
-        { method: 'GET', redirect: 'follow', signal: controller.signal }
-      );
+      // 1. Coba kelas.tarik
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const res = await fetch(
+          `${sync.webAppUrl}?action=kelas.tarik&token=${encodeURIComponent(sync.token)}`,
+          { method: 'GET', redirect: 'follow', signal: controller.signal }
+        );
+        clearTimeout(timeoutId);
 
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
-        let json: any = null;
-        try {
-          json = await res.json();
-        } catch {
-          return false;
-        }
-
-        if (json && json.success && (json.data || json.records)) {
-          const rawList = json.data || json.records;
-          if (Array.isArray(rawList)) {
-            kelasStore.mergeServerSnapshot(rawList, json.rev);
-            setSyncStatus('Tersinkron');
-            return true;
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.success && (json.data || json.records)) {
+            const list = json.data || json.records;
+            if (Array.isArray(list) && list.length > 0) {
+              rawList = list;
+              serverRev = json.rev;
+            }
           }
-        } else if (json && json.error === 'KODE_LAMA') {
-          setSyncStatus('Kode Lama');
         }
+      } catch {}
+
+      // 2. Jika kelas.tarik tidak mengembalikan data, fallback ke fetchData (standar semua versi Apps Script)
+      if (!rawList) {
+        try {
+          const controller2 = new AbortController();
+          const timeoutId2 = setTimeout(() => controller2.abort(), 7000);
+          const res2 = await fetch(
+            `${sync.webAppUrl}?action=fetchData&token=${encodeURIComponent(sync.token)}`,
+            { method: 'GET', redirect: 'follow', signal: controller2.signal }
+          );
+          clearTimeout(timeoutId2);
+
+          if (res2.ok) {
+            const json2 = await res2.json();
+            if (json2 && json2.success && json2.data && Array.isArray(json2.data.Kelas) && json2.data.Kelas.length > 0) {
+              rawList = json2.data.Kelas;
+              serverRev = json2.rev;
+            }
+          }
+        } catch {}
+      }
+
+      if (rawList && Array.isArray(rawList) && rawList.length > 0) {
+        kelasStore.mergeServerSnapshot(rawList, serverRev);
+        setSyncStatus('Tersinkron');
+        return true;
       }
       return false;
     } catch {
@@ -184,16 +218,26 @@ export const kelasSync = {
     if (!sync || !sync.webAppUrl) return;
 
     try {
-      const payload = {
-        action: 'kelas.klik',
-        token: sync.token,
-        classId: classIdOrSlug,
-      };
-
+      // Kirim kelas.klik
       fetch(sync.webAppUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          action: 'kelas.klik',
+          token: sync.token,
+          classId: classIdOrSlug,
+        }),
+      }).catch(() => {});
+
+      // Kirim trackClick untuk kompatibilitas skrip lama
+      fetch(sync.webAppUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'trackClick',
+          token: sync.token,
+          classId: classIdOrSlug,
+        }),
       }).catch(() => {});
     } catch {}
   },

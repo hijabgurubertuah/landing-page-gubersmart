@@ -7,6 +7,7 @@ import { kelasStore } from '../../data/kelasStore';
 import { kelasSync, startKelasPollingController } from '../../data/kelasSync';
 import { TEMPLATE_CLASSES } from '../../data/kelasTemplat';
 import { normalizeClassItem } from '../../data/kelasModel';
+import { StorageService } from '../../services/storageService';
 import { KartuKelasAdmin } from './KartuKelasAdmin';
 import { FormKelas } from './FormKelas';
 import { BilahSimpanSinkron } from './BilahSimpanSinkron';
@@ -20,7 +21,7 @@ interface AdminClassesProps {
   showToast: (msg: string) => void;
 }
 
-export const AdminClasses: React.FC<AdminClassesProps> = ({ showToast }) => {
+export const AdminClasses: React.FC<AdminClassesProps> = ({ onSaveClasses, showToast }) => {
   const [draftItems, setDraftItems] = useState<ClassItem[]>(() => kelasStore.getDraft());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -137,7 +138,13 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({ showToast }) => {
     // 1. Tulis langsung ke terbit lokal (0ms) & broadcast antar tab
     kelasStore.publishDraft(draftItems);
 
-    // 2. Kirim ke Google Apps Script / Sheets
+    // 2. Simpan ke StorageService & panggil onSaveClasses agar sinkron di seluruh aplikasi
+    StorageService.saveClasses(draftItems);
+    if (onSaveClasses) {
+      onSaveClasses(draftItems);
+    }
+
+    // 3. Kirim ke Google Apps Script / Sheets
     const res = await kelasSync.saveClassesToAppsScript(draftItems);
 
     if (res.success) {

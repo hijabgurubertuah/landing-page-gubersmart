@@ -82,7 +82,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     // Tampilkan data lokal segera
     const local = StorageService.getGalleryImages();
     setGalleryFiles(local);
-    setIsLoadingGallery(true);
+    // setIsLoadingGallery(true); // <--- REMOVED: menyebabkan state update saat render
     try {
       const files = await StorageService.getUploadedFiles();
       setGalleryFiles(files);

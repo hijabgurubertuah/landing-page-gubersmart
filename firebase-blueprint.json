@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "Kelas": {
+      "title": "Kelas",
+      "description": "Data kelas",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "shortDesc": { "type": "string" },
+        "fullDesc": { "type": "string" },
+        "normalPrice": { "type": "number" },
+        "currentPrice": { "type": "number" },
+        "status": { "type": "string" },
+        "image": { "type": "string" },
+        "lynkidUrl": { "type": "string" }
+      },
+      "required": ["id", "name", "slug"]
+    },
+    "CMS": {
+      "title": "CMS Settings",
+      "description": "Pengaturan CMS",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "settings": { "type": "string" }
+      },
+      "required": ["id", "settings"]
+    }
+  },
+  "firestore": {
+    "/kelas/{kelasId}": {
+      "schema": { "$ref": "Kelas" },
+      "description": "Koleksi kelas"
+    },
+    "/settings/{cmsId}": {
+      "schema": { "$ref": "CMS" },
+      "description": "Pengaturan CMS"
+    }
+  }
+}

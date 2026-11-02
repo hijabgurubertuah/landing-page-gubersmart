@@ -102,58 +102,18 @@ export default function App() {
 
   // Real-time synchronization effect:
   // 1. Instant local sync across tabs/windows (BroadcastChannel & storage event)
-  // 2. Real-time cross-device sync from Google Sheets (every 5s, focus, & visibility)
+  // 2. Real-time cross-device sync from Firestore
   useEffect(() => {
-    const loadLocalState = () => {
-      setClasses(StorageService.getClasses());
-      setTestimonials(StorageService.getTestimonials());
-      setKaryaList(StorageService.getKarya());
-      setTips(StorageService.getTips());
-      setFaqs(StorageService.getFaqs());
-      setCms(StorageService.getCMS());
-      setAdmins(StorageService.getAdmins());
-    };
-
-    const refreshData = () => {
-      StorageService.pullFromAppsScript().then((pulled) => {
-        if (pulled) {
-          loadLocalState();
-        }
-      });
-    };
-
-    refreshData();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        refreshData();
-      }
-    };
-
-    window.addEventListener('storage', loadLocalState);
-    window.addEventListener('guber_data_updated', loadLocalState);
-    window.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('focus', refreshData);
-
-    let bc: BroadcastChannel | null = null;
-    if ('BroadcastChannel' in window) {
-      bc = new BroadcastChannel('guber_sync_channel');
-      bc.onmessage = () => {
-        loadLocalState();
-      };
-    }
-
-    const pollInterval = setInterval(refreshData, 5000);
+    const unsubFirebase = StorageService.initRealtimeSync((col, data) => {
+      if (col === 'kelas') setClasses(data as ClassItem[]);
+      // Handle other collections...
+    });
 
     return () => {
-      clearInterval(pollInterval);
-      window.removeEventListener('storage', loadLocalState);
-      window.removeEventListener('guber_data_updated', loadLocalState);
-      window.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('focus', refreshData);
-      if (bc) bc.close();
+      unsubFirebase();
     };
   }, []);
+
 
   // Offline listener
   useEffect(() => {

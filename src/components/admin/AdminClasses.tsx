@@ -147,6 +147,11 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({ onSaveClasses, showT
     // 3. Kirim ke Google Apps Script / Sheets
     const res = await kelasSync.saveClassesToAppsScript(draftItems);
 
+    // 4. Simpan ke Firestore
+    for (const item of draftItems) {
+      await StorageService.saveToFirestore('kelas', item.id, item);
+    }
+
     if (res.success) {
       showToast('Berhasil disimpan');
     } else {

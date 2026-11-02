@@ -15,6 +15,9 @@ import {
   UserRole,
   GalleryFileItem,
 } from '../types';
+import { db } from '../lib/firebase';
+import { collection, doc, setDoc, onSnapshot } from 'firebase/firestore';
+
 import {
   INITIAL_CLASSES,
   INITIAL_TESTIMONIALS,
@@ -220,6 +223,26 @@ export const StorageService = {
       c.id === classId ? { ...c, clicksCount: (c.clicksCount || 0) + 1 } : c
     );
     this.saveClasses(updated);
+  },
+
+  // Firestore Integration
+  async saveToFirestore(collectionName: string, id: string, data: any): Promise<void> {
+    try {
+      await setDoc(doc(db, collectionName, id), { ...data, updatedAt: Date.now() });
+    } catch (e) {
+      console.error(`Error saving to Firestore: ${collectionName}`, e);
+    }
+  },
+
+  initRealtimeSync(onUpdate: (col: string, data: any[]) => void): () => void {
+    const collections = ['kelas', 'settings', 'testimonials', 'karya', 'tips', 'faqs', 'admins'];
+    const unsubscribes = collections.map(col => {
+      return onSnapshot(collection(db, col), (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        onUpdate(col, data);
+      });
+    });
+    return () => unsubscribes.forEach(unsub => unsub());
   },
 
   // Testimonials

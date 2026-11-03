@@ -1,6 +1,6 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit3, Trash2, MousePointerClick } from 'lucide-react';
 import { ClassItem } from '../../types';
 import { formatRupiah } from '../../data/kelasModel';
@@ -20,6 +20,10 @@ export const KartuKelasAdmin: React.FC<KartuKelasAdminProps> = ({
 }) => {
   const [imgError, setImgError] = useState(false);
 
+  useEffect(() => {
+    setImgError(false);
+  }, [item.image]);
+
   return (
     <div className="relative bg-white rounded-[18px] p-5 shadow-sm border border-[#e7e1d5] flex flex-col justify-between space-y-4 hover:shadow-md transition">
       {/* Penanda Titik Perubahan Draf */}
@@ -37,7 +41,13 @@ export const KartuKelasAdmin: React.FC<KartuKelasAdminProps> = ({
             <img
               src={item.image}
               alt={item.name}
-              onError={() => setImgError(true)}
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+              onError={() => {
+                console.log('Image load error for:', item.image);
+                setImgError(true);
+              }}
+              onLoad={() => console.log('Image loaded successfully:', item.image)}
               className="w-full h-full object-cover"
             />
           ) : (

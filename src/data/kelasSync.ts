@@ -56,9 +56,7 @@ export const kelasSync = {
       const cleanRecords = classes.map((item) => {
         const clean: Record<string, any> = {};
         for (const [key, val] of Object.entries(item)) {
-          if (key === 'image' && String(val).startsWith('data:')) {
-            clean[key] = '';
-          } else if (typeof val === 'object' && val !== null) {
+          if (typeof val === 'object' && val !== null) {
             clean[key] = JSON.stringify(val);
           } else {
             clean[key] = val;

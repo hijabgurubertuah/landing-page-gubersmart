@@ -1,6 +1,6 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ImageSlotProps {
   src?: string;
@@ -16,6 +16,10 @@ export const ImageSlot: React.FC<ImageSlotProps> = ({
   aspectRatio,
 }) => {
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
 
   const isImageEmpty = !src || src.trim() === '' || hasError;
 
@@ -34,6 +38,8 @@ export const ImageSlot: React.FC<ImageSlotProps> = ({
         <img
           src={src}
           alt={alt}
+          referrerPolicy="no-referrer"
+          crossOrigin="anonymous"
           onError={() => setHasError(true)}
           className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
           loading="lazy"

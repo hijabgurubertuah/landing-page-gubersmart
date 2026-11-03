@@ -94,6 +94,7 @@ export const AdminClasses: React.FC<AdminClassesProps> = ({ onSaveClasses, showT
   };
 
   const handleApplyForm = (updatedItem: ClassItem) => {
+    console.log('Applying form data, image:', updatedItem.image ? updatedItem.image.slice(0, 50) : 'none');
     let updatedList: ClassItem[];
     if (isCreating) {
       updatedList = [updatedItem, ...draftItems];

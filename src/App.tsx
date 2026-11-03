@@ -36,7 +36,7 @@ import { AdminCMS } from './components/admin/AdminCMS';
 import { AdminSync } from './components/admin/AdminSync';
 import { AdminFirebase } from './components/admin/AdminFirebase';
 import { AdminAccounts } from './components/admin/AdminAccounts';
-import { AdminAccountSecurity } from './components/admin/AdminAccountSecurity';
+import { kelasStore } from './data/kelasStore';
 
 export default function App() {
   // App-level data state
@@ -99,20 +99,50 @@ export default function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
-
   // Real-time synchronization effect:
   // 1. Instant local sync across tabs/windows (BroadcastChannel & storage event)
   // 2. Real-time cross-device sync from Firestore
   useEffect(() => {
     const unsubFirebase = StorageService.initRealtimeSync((col, data) => {
-      if (col === 'kelas') setClasses(data as ClassItem[]);
-      // Handle other collections...
+      if (!data || data.length === 0) return; // Jangan timpa jika data Firebase kosong (mungkin baru aktif)
+
+      if (col === 'kelas') {
+        const normalized = data as ClassItem[];
+        setClasses(normalized);
+        StorageService.saveClasses(normalized);
+        // Penting: Beritahu kelasStore agar draf admin juga terupdate
+        kelasStore.mergeServerSnapshot(normalized);
+      } else if (col === 'testimonials') {
+        setTestimonials(data as TestimonialItem[]);
+        StorageService.saveTestimonials(data as TestimonialItem[]);
+      } else if (col === 'karya') {
+        setKaryaList(data as KaryaItem[]);
+        StorageService.saveKarya(data as KaryaItem[]);
+      } else if (col === 'tips') {
+        setTips(data as TipsItem[]);
+        StorageService.saveTips(data as TipsItem[]);
+      } else if (col === 'faqs') {
+        setFaqs(data as FAQItem[]);
+        StorageService.saveFaqs(data as FAQItem[]);
+      } else if (col === 'settings') {
+        // CMS settings biasanya hanya 1 dokumen
+        if (data[0]) {
+          const settings = data[0] as CMSSettings;
+          setCms(settings);
+          StorageService.saveCMS(settings);
+        }
+      } else if (col === 'admins') {
+        setAdmins(data as AdminAccount[]);
+        StorageService.saveAdmins(data as AdminAccount[]);
+      }
     });
 
     return () => {
       unsubFirebase();
     };
   }, []);
+
+
 
 
   // Offline listener
@@ -194,40 +224,62 @@ export default function App() {
   };
 
   // Handlers for saving data
-  const handleSaveClasses = (newClasses: ClassItem[]) => {
+  const handleSaveClasses = async (newClasses: ClassItem[]) => {
     setClasses(newClasses);
     StorageService.saveClasses(newClasses);
     setLogs(StorageService.getLogs());
+    
+    // Manual trigger to Firestore on save
+    for (const item of newClasses) {
+      await StorageService.saveToFirestore('kelas', item.id, item);
+    }
   };
 
-  const handleSaveTestimonials = (newTestimonials: TestimonialItem[]) => {
+  const handleSaveTestimonials = async (newTestimonials: TestimonialItem[]) => {
     setTestimonials(newTestimonials);
     StorageService.saveTestimonials(newTestimonials);
     setLogs(StorageService.getLogs());
+    
+    for (const item of newTestimonials) {
+      await StorageService.saveToFirestore('testimonials', item.id, item);
+    }
   };
 
-  const handleSaveKarya = (newKarya: KaryaItem[]) => {
+  const handleSaveKarya = async (newKarya: KaryaItem[]) => {
     setKaryaList(newKarya);
     StorageService.saveKarya(newKarya);
     setLogs(StorageService.getLogs());
+    
+    for (const item of newKarya) {
+      await StorageService.saveToFirestore('karya', item.id, item);
+    }
   };
 
-  const handleSaveTips = (newTips: TipsItem[]) => {
+  const handleSaveTips = async (newTips: TipsItem[]) => {
     setTips(newTips);
     StorageService.saveTips(newTips);
     setLogs(StorageService.getLogs());
+    
+    for (const item of newTips) {
+      await StorageService.saveToFirestore('tips', item.id, item);
+    }
   };
 
-  const handleSaveFaqs = (newFaqs: FAQItem[]) => {
+  const handleSaveFaqs = async (newFaqs: FAQItem[]) => {
     setFaqs(newFaqs);
     StorageService.saveFaqs(newFaqs);
     setLogs(StorageService.getLogs());
+    
+    for (const item of newFaqs) {
+      await StorageService.saveToFirestore('faqs', item.id, item);
+    }
   };
 
-  const handleSaveCMS = (newCMS: CMSSettings) => {
+  const handleSaveCMS = async (newCMS: CMSSettings) => {
     setCms(newCMS);
     StorageService.saveCMS(newCMS);
     setLogs(StorageService.getLogs());
+    await StorageService.saveToFirestore('settings', 'main_config', newCMS);
   };
 
   const handleSaveSync = (newSync: SyncSettings) => {

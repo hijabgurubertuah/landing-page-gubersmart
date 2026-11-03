@@ -124,78 +124,7 @@ export function formatUrl(url: string): string {
   return 'https://' + trimmed;
 }
 
-export function normalizeClassItem(c: any): ClassItem {
-  if (!c || typeof c !== 'object') {
-    return {
-      id: 'class_' + Date.now(),
-      slug: 'kelas-' + Date.now(),
-      name: '',
-      image: '',
-      shortDesc: '',
-      fullDesc: '',
-      normalPrice: 0,
-      currentPrice: 0,
-      status: 'active',
-      quota: '',
-      schedule: '',
-      lynkidUrl: 'https://lynk.id',
-      curriculum: [],
-      outcome: '',
-      targetAudience: '',
-      faqs: [],
-      clicksCount: 0,
-      order: 1,
-    };
-  }
-
-  let curriculum: CurriculumMeeting[] = [];
-  if (Array.isArray(c.curriculum)) {
-    curriculum = c.curriculum;
-  } else if (typeof c.curriculum === 'string' && c.curriculum.trim()) {
-    try {
-      const parsed = JSON.parse(c.curriculum);
-      if (Array.isArray(parsed)) {
-        curriculum = parsed;
-      }
-    } catch {
-      curriculum = [];
-    }
-  }
-
-  let faqs: ClassFAQ[] = [];
-  if (Array.isArray(c.faqs)) {
-    faqs = c.faqs;
-  } else if (typeof c.faqs === 'string' && c.faqs.trim()) {
-    try {
-      const parsed = JSON.parse(c.faqs);
-      if (Array.isArray(parsed)) {
-        faqs = parsed;
-      }
-    } catch {
-      faqs = [];
-    }
-  }
-
-  let status: 'active' | 'inactive' = 'active';
-  const st = String(c.status || '').toLowerCase();
-  if (st === 'inactive' || st === 'nonaktif' || st === 'false' || st === '0') {
-    status = 'inactive';
-  } else {
-    status = 'active';
-  }
-
-  return {
-    ...c,
-    status,
-    lynkidUrl: formatUrl(c.lynkidUrl),
-    curriculum,
-    faqs,
-    normalPrice: Number(c.normalPrice) || 0,
-    currentPrice: Number(c.currentPrice) || 0,
-    clicksCount: Number(c.clicksCount) || 0,
-    order: Number(c.order) || 0,
-  };
-}
+import { normalizeClassItem, normalizeClassList } from '../data/kelasModel';
 
 export const StorageService = {
   // Classes
@@ -208,7 +137,7 @@ export const StorageService = {
     return raw.map(normalizeClassItem);
   },
   saveClasses(classes: ClassItem[]): void {
-    const normalized = Array.isArray(classes) ? classes.map(normalizeClassItem) : [];
+    const normalized = normalizeClassList(classes);
     setStored(STORAGE_KEYS.CLASSES, normalized);
     try {
       localStorage.setItem('kelas_terbit', JSON.stringify(normalized));
@@ -237,10 +166,16 @@ export const StorageService = {
   initRealtimeSync(onUpdate: (col: string, data: any[]) => void): () => void {
     const collections = ['kelas', 'settings', 'testimonials', 'karya', 'tips', 'faqs', 'admins'];
     const unsubscribes = collections.map(col => {
-      return onSnapshot(collection(db, col), (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        onUpdate(col, data);
-      });
+      return onSnapshot(collection(db, col), 
+        (snapshot) => {
+          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          onUpdate(col, data);
+        },
+        (error) => {
+          console.warn(`Listener error for ${col}:`, error.code);
+          // Abaikan error jika hanya karena izin atau koleksi tidak ada untuk sementara
+        }
+      );
     });
     return () => unsubscribes.forEach(unsub => unsub());
   },

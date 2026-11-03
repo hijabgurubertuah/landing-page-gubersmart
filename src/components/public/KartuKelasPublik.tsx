@@ -1,6 +1,6 @@
 // ATURAN BAKU: lihat designSystem. UI harus selalu minimalis, bersih, dan tanpa teks petunjuk.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClassItem } from '../../types';
 import { formatRupiah, formatClassUrl } from '../../data/kelasModel';
 import { kelasSync } from '../../data/kelasSync';
@@ -15,6 +15,10 @@ export const KartuKelasPublik: React.FC<KartuKelasPublikProps> = ({
   onSelectDetail,
 }) => {
   const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [item.image]);
 
   const handleRegisterClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -32,6 +36,8 @@ export const KartuKelasPublik: React.FC<KartuKelasPublikProps> = ({
             <img
               src={item.image}
               alt={item.name}
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
               onError={() => setImgError(true)}
               className="w-full h-full object-cover"
               loading="lazy"

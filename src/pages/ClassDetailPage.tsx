@@ -131,6 +131,8 @@ export const ClassDetailPage: React.FC<ClassDetailPageProps> = ({
             <img
               src={currentClass.image}
               alt={currentClass.name}
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
               className="w-full h-full object-cover"
             />
           ) : (

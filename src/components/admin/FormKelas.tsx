@@ -40,6 +40,7 @@ export const FormKelas: React.FC<FormKelasProps> = ({
   }, [formData.name, isCreating, isSlugUserEdited]);
 
   const updateField = (field: keyof ClassItem, val: any) => {
+    console.log(`Updating field ${field} with value:`, typeof val === 'string' && val.length > 50 ? val.slice(0, 50) + '...' : val);
     setIsDirty(true);
     setErrors((prev) => ({ ...prev, [field]: '' }));
     setFormData((prev) => ({ ...prev, [field]: val }));

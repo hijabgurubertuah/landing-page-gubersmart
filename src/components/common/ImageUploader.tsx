@@ -279,6 +279,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                       alt={file.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
                     />
 
                     {/* Selected badge */}
@@ -344,7 +346,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       {value && (
         <div className="flex items-center gap-3 pt-2">
           <div className="w-16 h-16 rounded-lg overflow-hidden border border-[#e7e1d5] bg-[#07142b]/5 relative group">
-            <img src={value} alt="" className="w-full h-full object-cover" />
+            <img src={value} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" crossOrigin="anonymous" />
           </div>
           <button
             type="button"

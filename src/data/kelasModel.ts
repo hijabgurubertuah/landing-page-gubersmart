@@ -92,10 +92,7 @@ export function normalizeClassItem(raw: any): ClassItem | null {
     const slug = rawSlug ? generateSlug(rawSlug) : generateSlug(name || 'kelas');
 
     let image = String(raw.image || raw.gambar || raw.Gambar || '').trim();
-    // Hapus data: base64 image strings agar tidak melebihi sel Google Sheets
-    if (image.toLowerCase().startsWith('data:')) {
-      image = '';
-    }
+    // Base64 images are supported now for direct preview, no longer stripping them here.
 
     const normalPrice = parseRupiah(raw.normalPrice ?? raw.hargaNormal);
     const currentPrice = parseRupiah(raw.currentPrice ?? raw.hargaSekarang);
